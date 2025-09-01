@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 
 // --- Типы данных ---
 type BlockShape = boolean[][];
@@ -7,6 +7,28 @@ type PlacedBlock = {
   id: number;
   shape: BlockShape;
   position: BlockPosition;
+};
+
+// --- Вспомогательные функции для трансформации блоков ---
+
+// Вращение блока на 90 градусов по часовой стрелке
+const rotateBlock = (shape: BlockShape): BlockShape => {
+  const numRows = shape.length;
+  const numCols = shape[0].length;
+  // Новая матрица будет иметь numCols строк и numRows столбцов
+  const newShape: BlockShape = Array(numCols).fill(null).map(() => Array(numRows).fill(false));
+
+  for (let y = 0; y < numRows; y++) {
+    for (let x = 0; x < numCols; x++) {
+      newShape[x][numRows - 1 - y] = shape[y][x];
+    }
+  }
+  return newShape;
+};
+
+// Зеркальное отражение блока по горизонтали
+const flipBlock = (shape: BlockShape): BlockShape => {
+  return shape.map(row => [...row].reverse());
 };
 
 // --- Компоненты (без изменений) ---
@@ -41,6 +63,10 @@ const Hub = ({ onBlockSelect }: { onBlockSelect: (shape: BlockShape, e: React.Mo
       <h2 className="text-xl font-semibold mb-2 text-center">Детали Ядра</h2>
       <p className="text-sm text-gray-400 -mt-6 mb-2 text-center">Перетащите деталь на сетку</p>
       <DraggableBlock shape={l_Block} onBlockSelect={onBlockSelect} />
+      <div className="text-sm text-gray-400 mt-4 text-center">
+        <p>Нажмите 'R' для поворота</p>
+        <p>Нажмите 'F' для зеркала</p>
+      </div>
     </div>
   );
 };
@@ -117,7 +143,7 @@ export default function App() {
       if (blockToDrag) {
         e.preventDefault();
         setIsDragging(true);
-        setActiveBlockShape(blockToDrag.shape);
+        setActiveBlockShape(blockToDrag.shape); // Берем форму существующего блока
         setDraggedBlockId(blockToDrag.id);
         setDragPosition({ x: e.clientX, y: e.clientY });
         // Запоминаем смещение клика относительно угла блока
@@ -142,17 +168,21 @@ export default function App() {
         const gridX = Math.floor((e.clientX - rect.left - dragOffset.x) / CELL_SIZE);
         const gridY = Math.floor((e.clientY - rect.top - dragOffset.y) / CELL_SIZE);
 
+        // Обновляем предпросмотр только если позиция изменилась
         if (previewPosition.x !== gridX || previewPosition.y !== gridY) {
            setPreviewPosition({ x: gridX, y: gridY });
 
           // Проверка, можно ли разместить блок
           let canPlaceBlock = true;
+          // Используем activeBlockShape, который может быть изменен вращением/отражением
           for (let dy = 0; dy < activeBlockShape.length; dy++) {
             for (let dx = 0; dx < activeBlockShape[dy].length; dx++) {
               if (activeBlockShape[dy][dx]) {
                 const newX = gridX + dx;
                 const newY = gridY + dy;
-                if (newX >= GRID_SIZE || newY >= GRID_SIZE || newX < 0 || newY < 0 || computedGrid[newY][newX] !== null) {
+                // Проверяем границы сетки и пересечения с другими блоками (кроме того, который мы двигаем)
+                if (newX >= GRID_SIZE || newY >= GRID_SIZE || newX < 0 || newY < 0 || 
+                    (computedGrid[newY][newX] !== null && computedGrid[newY][newX] !== draggedBlockId)) {
                   canPlaceBlock = false;
                   break;
                 }
@@ -166,10 +196,10 @@ export default function App() {
     };
 
     const handleGlobalMouseUp = () => {
-      if (canPlace) {
+      if (canPlace && activeBlockShape) { // Добавлена проверка activeBlockShape
         if (draggedBlockId) {
-          // Мы двигали существующий блок -> обновляем его позицию
-          setPlacedBlocks(blocks => blocks.map(b => b.id === draggedBlockId ? { ...b, position: previewPosition } : b));
+          // Мы двигали существующий блок -> обновляем его позицию И ФОРМУ
+          setPlacedBlocks(blocks => blocks.map(b => b.id === draggedBlockId ? { ...b, position: previewPosition, shape: activeBlockShape } : b));
         } else {
           // Мы ставили новый блок -> добавляем его в массив
           setPlacedBlocks(blocks => [...blocks, { id: nextId, shape: activeBlockShape, position: previewPosition }]);
@@ -192,6 +222,26 @@ export default function App() {
     };
   }, [isDragging, activeBlockShape, dragOffset, computedGrid, nextId, placedBlocks, previewPosition, canPlace, draggedBlockId]);
 
+
+  // --- Обработчик клавиш для вращения/отражения ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!isDragging || !activeBlockShape) return; // Только если блок активно тащится
+
+      if (e.key === 'r' || e.key === 'R') {
+        setActiveBlockShape(prevShape => prevShape ? rotateBlock(prevShape) : null);
+      } else if (e.key === 'f' || e.key === 'F') {
+        setActiveBlockShape(prevShape => prevShape ? flipBlock(prevShape) : null);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isDragging, activeBlockShape]); // Зависит от isDragging и activeBlockShape
+
+
   const clearGrid = () => {
     setPlacedBlocks([]);
   };
@@ -208,7 +258,12 @@ export default function App() {
             top: dragPosition.y - dragOffset.y,
           }}
         >
-          <div className="grid grid-cols-2 gap-0 border-2 border-green-400 opacity-70">
+          <div className="grid gap-0 border-2 border-green-400 opacity-70"
+               style={{
+                 gridTemplateColumns: `repeat(${activeBlockShape[0].length}, ${CELL_SIZE}px)`,
+                 gridTemplateRows: `repeat(${activeBlockShape.length}, ${CELL_SIZE}px)`,
+               }}
+          >
             {activeBlockShape.map((row, y) =>
               row.map((cell, x) => (
                 <div
@@ -254,6 +309,29 @@ export default function App() {
                       `}
                       style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px`, border: '1px solid #4A5568' }}
                     >
+                      {/* Отрисовка размещенных блоков */}
+                      {isOccupied && placedBlocks.map(block => {
+                        if (block.id === blockId) {
+                          // Определяем, является ли текущая ячейка (x,y) частью этого блока
+                          const localX = x - block.position.x;
+                          const localY = y - block.position.y;
+                          if (block.shape[localY]?.[localX]) {
+                            return (
+                              <div
+                                key={`placed-${block.id}-${x}-${y}`}
+                                className="absolute inset-0 bg-blue-500 flex items-center justify-center text-xs"
+                                // Здесь можно добавить изображение, когда дойдем до этого шага
+                              >
+                                { block.id === draggedBlockId ? "" : "■" } {/* Убираем символ у перетаскиваемого блока */}
+                              </div>
+                            );
+                          }
+                        }
+                        return null;
+                      })}
+
+
+                      {/* Предпросмотр */}
                       {isPartOfPreview && (
                         <div className={`absolute inset-0 border-2 ${canPlace ? 'border-green-400 bg-green-500/30' : 'border-red-400 bg-red-500/30'}`}></div>
                       )}
