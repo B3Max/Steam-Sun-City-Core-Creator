@@ -19,4 +19,4 @@ echo.
 echo Приложение перезапущено!
 echo Откройте браузер и перейдите по адресу: http://localhost:3000
 echo.
-pause
+@REM pause

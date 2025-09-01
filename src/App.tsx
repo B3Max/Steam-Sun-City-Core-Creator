@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 
 // --- Типы данных ---
 type BlockShape = boolean[][];
@@ -10,14 +10,11 @@ type PlacedBlock = {
 };
 
 // --- Вспомогательные функции для трансформации блоков ---
-
-// Вращение блока на 90 градусов по часовой стрелке
 const rotateBlock = (shape: BlockShape): BlockShape => {
+  if (!shape || shape.length === 0) return [];
   const numRows = shape.length;
   const numCols = shape[0].length;
-  // Новая матрица будет иметь numCols строк и numRows столбцов
   const newShape: BlockShape = Array(numCols).fill(null).map(() => Array(numRows).fill(false));
-
   for (let y = 0; y < numRows; y++) {
     for (let x = 0; x < numCols; x++) {
       newShape[x][numRows - 1 - y] = shape[y][x];
@@ -26,43 +23,64 @@ const rotateBlock = (shape: BlockShape): BlockShape => {
   return newShape;
 };
 
-// Зеркальное отражение блока по горизонтали
 const flipBlock = (shape: BlockShape): BlockShape => {
+  if (!shape) return [];
   return shape.map(row => [...row].reverse());
 };
 
-// --- Компоненты (без изменений) ---
-const DraggableBlock = ({ shape, onBlockSelect }: { shape: BlockShape; onBlockSelect: (shape: BlockShape, e: React.MouseEvent) => void }) => (
-  <div
-    className="cursor-move select-none transition-transform hover:scale-110"
-    onMouseDown={(e) => onBlockSelect(shape, e)}
-  >
-    <div className="grid grid-cols-2 gap-0 border-2 border-blue-400 bg-blue-500/20">
-      {shape.map((row, y) =>
-        row.map((cell, x) => (
-          <div
-            key={`${x}-${y}`}
-            className={`w-8 h-8 border border-blue-400 flex items-center justify-center ${cell ? "bg-blue-500" : "bg-transparent"}`}
-          >
-            {cell ? "■" : ""}
-          </div>
-        ))
-      )}
+// --- Компоненты ---
+const DraggableBlock = ({ shape, onBlockSelect }: { shape: BlockShape; onBlockSelect: (shape: BlockShape, e: React.MouseEvent) => void }) => {
+  const blockWidth = shape[0]?.length || 1;
+
+  return (
+    <div
+      className="cursor-move select-none transition-transform hover:scale-110 inline-block"
+      onMouseDown={(e) => onBlockSelect(shape, e)}
+    >
+      <div 
+        className="grid gap-0 border-2 border-blue-400 bg-blue-500/20"
+        style={{ gridTemplateColumns: `repeat(${blockWidth}, 1fr)` }}
+      >
+        {shape.map((row, y) =>
+          row.map((cell, x) => (
+            <div
+              key={`${x}-${y}`}
+              className={`w-8 h-8 border border-blue-400 flex items-center justify-center ${cell ? "bg-blue-500" : "bg-transparent"}`}
+            >
+              {cell ? "■" : ""}
+            </div>
+          ))
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
 
 const Hub = ({ onBlockSelect }: { onBlockSelect: (shape: BlockShape, e: React.MouseEvent) => void }) => {
-  const l_Block: BlockShape = [
-    [true, false],
-    [true, false],
+  const l_Block: BlockShape = [ // Малый часовой механизм
+    [true, true, false],
+    [true, true, true],
+  ];
+  const r_Block: BlockShape = [ // Средний часовой механизм
+    [false, true, false, false],
+    [true, true, true, false],
+    [true, true, true, true],
+    [true, true, true, false],
+  ];
+  const f_Block: BlockShape = [ // Ограничитель завода
     [true, true],
   ];
+
   return (
     <div className="bg-gray-800 p-4 rounded-lg flex flex-col items-center gap-6">
       <h2 className="text-xl font-semibold mb-2 text-center">Детали Ядра</h2>
       <p className="text-sm text-gray-400 -mt-6 mb-2 text-center">Перетащите деталь на сетку</p>
+      
       <DraggableBlock shape={l_Block} onBlockSelect={onBlockSelect} />
+      <DraggableBlock shape={r_Block} onBlockSelect={onBlockSelect} />
+      <DraggableBlock shape={f_Block} onBlockSelect={onBlockSelect} />
+
       <div className="text-sm text-gray-400 mt-4 text-center">
         <p>Нажмите 'R' для поворота</p>
         <p>Нажмите 'F' для зеркала</p>
@@ -80,29 +98,19 @@ export default function App() {
   // --- Состояние (State) ---
   const [placedBlocks, setPlacedBlocks] = useState<PlacedBlock[]>([]);
   const [nextId, setNextId] = useState(1);
-
-  // Состояние перетаскивания
   const [isDragging, setIsDragging] = useState(false);
   const [activeBlockShape, setActiveBlockShape] = useState<BlockShape | null>(null);
-  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 }); // Позиция курсора на экране
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 }); // Смещение курсора внутри блока
-  const [draggedBlockId, setDraggedBlockId] = useState<number | null>(null); // ID блока, который двигаем с сетки
-
-  // Состояние предпросмотра на сетке
+  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [draggedBlockId, setDraggedBlockId] = useState<number | null>(null);
   const [previewPosition, setPreviewPosition] = useState<BlockPosition>({ x: -1, y: -1 });
   const [canPlace, setCanPlace] = useState(false);
-  
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // --- "Вычисляемая" сетка ---
-  // Создаем виртуальную сетку на основе placedBlocks для проверок и рендеринга.
-  // useMemo кэширует результат, чтобы не пересчитывать на каждый рендер.
   const computedGrid = useMemo(() => {
     const grid: (number | null)[][] = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
     placedBlocks.forEach(block => {
-      // Не отображаем блок, который мы сейчас тащим
       if (block.id === draggedBlockId) return;
-
       block.shape.forEach((row, dy) => {
         row.forEach((cell, dx) => {
           if (cell) {
@@ -118,35 +126,29 @@ export default function App() {
     return grid;
   }, [placedBlocks, draggedBlockId]);
 
-  // --- Логика Drag and Drop ---
-
-  // 1. Кликнули на блок в ХАБЕ
   const handleSelectBlockFromHub = (shape: BlockShape, e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(true);
     setActiveBlockShape(shape);
-    setDragOffset({ x: 0, y: 0 }); // Новый блок всегда тащится за угол
+    setDragOffset({ x: 0, y: 0 });
     setDragPosition({ x: e.clientX, y: e.clientY });
-    setDraggedBlockId(null); // Это новый блок, у него еще нет ID
+    setDraggedBlockId(null);
   };
 
-  // 2. Кликнули на СЕТКУ (чтобы подвинуть существующий блок)
   const handleMouseDownOnGrid = (e: React.MouseEvent) => {
     if (!gridRef.current) return;
     const rect = gridRef.current.getBoundingClientRect();
     const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
     const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
-
     const blockId = computedGrid[y]?.[x];
     if (blockId) {
       const blockToDrag = placedBlocks.find(b => b.id === blockId);
       if (blockToDrag) {
         e.preventDefault();
         setIsDragging(true);
-        setActiveBlockShape(blockToDrag.shape); // Берем форму существующего блока
+        setActiveBlockShape(blockToDrag.shape);
         setDraggedBlockId(blockToDrag.id);
         setDragPosition({ x: e.clientX, y: e.clientY });
-        // Запоминаем смещение клика относительно угла блока
         setDragOffset({
           x: (x - blockToDrag.position.x) * CELL_SIZE,
           y: (y - blockToDrag.position.y) * CELL_SIZE,
@@ -155,65 +157,49 @@ export default function App() {
     }
   };
 
-  // 3. Глобальный обработчик движения и отпускания мыши
   useEffect(() => {
     if (!isDragging || !activeBlockShape) return;
-
     const handleGlobalMouseMove = (e: MouseEvent) => {
       setDragPosition({ x: e.clientX, y: e.clientY });
+      if (!gridRef.current) return;
+      const rect = gridRef.current.getBoundingClientRect();
+      const gridX = Math.floor((e.clientX - rect.left - dragOffset.x) / CELL_SIZE);
+      const gridY = Math.floor((e.clientY - rect.top - dragOffset.y) / CELL_SIZE);
 
-      if (gridRef.current) {
-        const rect = gridRef.current.getBoundingClientRect();
-        // Рассчитываем позицию угла блока на сетке, учитывая смещение
-        const gridX = Math.floor((e.clientX - rect.left - dragOffset.x) / CELL_SIZE);
-        const gridY = Math.floor((e.clientY - rect.top - dragOffset.y) / CELL_SIZE);
-
-        // Обновляем предпросмотр только если позиция изменилась
-        if (previewPosition.x !== gridX || previewPosition.y !== gridY) {
-           setPreviewPosition({ x: gridX, y: gridY });
-
-          // Проверка, можно ли разместить блок
-          let canPlaceBlock = true;
-          // Используем activeBlockShape, который может быть изменен вращением/отражением
-          for (let dy = 0; dy < activeBlockShape.length; dy++) {
-            for (let dx = 0; dx < activeBlockShape[dy].length; dx++) {
-              if (activeBlockShape[dy][dx]) {
-                const newX = gridX + dx;
-                const newY = gridY + dy;
-                // Проверяем границы сетки и пересечения с другими блоками (кроме того, который мы двигаем)
-                if (newX >= GRID_SIZE || newY >= GRID_SIZE || newX < 0 || newY < 0 || 
-                    (computedGrid[newY][newX] !== null && computedGrid[newY][newX] !== draggedBlockId)) {
-                  canPlaceBlock = false;
-                  break;
-                }
+      if (previewPosition.x !== gridX || previewPosition.y !== gridY) {
+        setPreviewPosition({ x: gridX, y: gridY });
+        let canPlaceBlock = true;
+        for (let dy = 0; dy < activeBlockShape.length; dy++) {
+          for (let dx = 0; dx < activeBlockShape[dy].length; dx++) {
+            if (activeBlockShape[dy][dx]) {
+              const newX = gridX + dx;
+              const newY = gridY + dy;
+              if (newX >= GRID_SIZE || newY >= GRID_SIZE || newX < 0 || newY < 0 ||
+                  (computedGrid[newY]?.[newX] !== null && computedGrid[newY][newX] !== draggedBlockId)) {
+                canPlaceBlock = false;
+                break;
               }
             }
-            if (!canPlaceBlock) break;
           }
-          setCanPlace(canPlaceBlock);
+          if (!canPlaceBlock) break;
         }
+        setCanPlace(canPlaceBlock);
       }
     };
-
     const handleGlobalMouseUp = () => {
-      if (canPlace && activeBlockShape) { // Добавлена проверка activeBlockShape
+      if (canPlace && activeBlockShape) {
         if (draggedBlockId) {
-          // Мы двигали существующий блок -> обновляем его позицию И ФОРМУ
           setPlacedBlocks(blocks => blocks.map(b => b.id === draggedBlockId ? { ...b, position: previewPosition, shape: activeBlockShape } : b));
         } else {
-          // Мы ставили новый блок -> добавляем его в массив
           setPlacedBlocks(blocks => [...blocks, { id: nextId, shape: activeBlockShape, position: previewPosition }]);
           setNextId(id => id + 1);
         }
       }
-
-      // Сброс состояния перетаскивания
       setIsDragging(false);
       setActiveBlockShape(null);
       setDraggedBlockId(null);
       setPreviewPosition({ x: -1, y: -1 });
     };
-
     document.addEventListener("mousemove", handleGlobalMouseMove);
     document.addEventListener("mouseup", handleGlobalMouseUp);
     return () => {
@@ -222,47 +208,36 @@ export default function App() {
     };
   }, [isDragging, activeBlockShape, dragOffset, computedGrid, nextId, placedBlocks, previewPosition, canPlace, draggedBlockId]);
 
-
-  // --- Обработчик клавиш для вращения/отражения ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isDragging || !activeBlockShape) return; // Только если блок активно тащится
-
-      if (e.key === 'r' || e.key === 'R') {
-        setActiveBlockShape(prevShape => prevShape ? rotateBlock(prevShape) : null);
-      } else if (e.key === 'f' || e.key === 'F') {
-        setActiveBlockShape(prevShape => prevShape ? flipBlock(prevShape) : null);
+      if (!isDragging || !activeBlockShape) return;
+      if (e.key.toLowerCase() === 'r') {
+        setActiveBlockShape(rotateBlock);
+      } else if (e.key.toLowerCase() === 'f') {
+        setActiveBlockShape(flipBlock);
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isDragging, activeBlockShape]); // Зависит от isDragging и activeBlockShape
+  }, [isDragging, activeBlockShape]);
 
+  const clearGrid = () => setPlacedBlocks([]);
 
-  const clearGrid = () => {
-    setPlacedBlocks([]);
-  };
-
-  // --- Рендеринг ---
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
-      {/* Левитирующий блок */}
       {isDragging && activeBlockShape && (
         <div
           className="fixed pointer-events-none z-50"
-          style={{
-            left: dragPosition.x - dragOffset.x,
-            top: dragPosition.y - dragOffset.y,
-          }}
+          style={{ left: dragPosition.x - dragOffset.x, top: dragPosition.y - dragOffset.y }}
         >
-          <div className="grid gap-0 border-2 border-green-400 opacity-70"
-               style={{
-                 gridTemplateColumns: `repeat(${activeBlockShape[0].length}, ${CELL_SIZE}px)`,
-                 gridTemplateRows: `repeat(${activeBlockShape.length}, ${CELL_SIZE}px)`,
-               }}
+          <div
+            className="grid gap-0 border-2 border-green-400 opacity-70"
+            style={{
+              gridTemplateColumns: `repeat(${activeBlockShape[0].length}, ${CELL_SIZE}px)`,
+              gridTemplateRows: `repeat(${activeBlockShape.length}, ${CELL_SIZE}px)`,
+            }}
           >
             {activeBlockShape.map((row, y) =>
               row.map((cell, x) => (
@@ -276,12 +251,9 @@ export default function App() {
           </div>
         </div>
       )}
-
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-center">Steam Sun — Тестовая сборка</h1>
         <div className="flex gap-8 items-start justify-center">
-          
-          {/* Сетка */}
           <div className="bg-gray-800 p-4 rounded-lg">
             <h2 className="text-xl font-semibold mb-4 text-center">Сетка ядра 6x6</h2>
             <div
@@ -293,48 +265,29 @@ export default function App() {
                 Array.from({ length: GRID_SIZE }).map((_, x) => {
                   const blockId = computedGrid[y][x];
                   const isOccupied = blockId !== null;
-                  
-                  // Логика для предпросмотра
-                  const isPartOfPreview = 
+                  const isPartOfPreview =
                     isDragging && activeBlockShape &&
-                    x >= previewPosition.x && x < previewPosition.x + activeBlockShape[0].length &&
+                    x >= previewPosition.x && x < previewPosition.x + (activeBlockShape[0]?.length || 0) &&
                     y >= previewPosition.y && y < previewPosition.y + activeBlockShape.length &&
                     activeBlockShape[y - previewPosition.y]?.[x - previewPosition.x];
 
                   return (
                     <div
                       key={`${x}-${y}`}
-                      className={`relative flex items-center justify-center 
-                        ${isOccupied ? "bg-blue-500" : "bg-gray-700 hover:bg-gray-600"}
-                      `}
-                      style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px`, border: '1px solid #4A5568' }}
+                      className="relative flex items-center justify-center"
+                      style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px`, border: '1px solid #4A5568', backgroundColor: isOccupied ? '#4299E1' : '#2D3748' }}
                     >
-                      {/* Отрисовка размещенных блоков */}
-                      {isOccupied && placedBlocks.map(block => {
-                        if (block.id === blockId) {
-                          // Определяем, является ли текущая ячейка (x,y) частью этого блока
-                          const localX = x - block.position.x;
-                          const localY = y - block.position.y;
-                          if (block.shape[localY]?.[localX]) {
-                            return (
-                              <div
-                                key={`placed-${block.id}-${x}-${y}`}
-                                className="absolute inset-0 bg-blue-500 flex items-center justify-center text-xs"
-                                // Здесь можно добавить изображение, когда дойдем до этого шага
-                              >
-                                { block.id === draggedBlockId ? "" : "■" } {/* Убираем символ у перетаскиваемого блока */}
-                              </div>
-                            );
-                          }
+                      {isOccupied && !draggedBlockId && <div className="absolute inset-0 bg-blue-500 flex items-center justify-center text-xs">■</div>}
+                      {placedBlocks.map(block => {
+                        if(block.id === draggedBlockId || block.id !== blockId) return null;
+                        const localX = x - block.position.x;
+                        const localY = y - block.position.y;
+                        if(block.shape[localY]?.[localX]){
+                          return <div key={`p-${block.id}`} className="absolute inset-0 bg-blue-500 flex items-center justify-center text-xs">■</div>
                         }
                         return null;
                       })}
-
-
-                      {/* Предпросмотр */}
-                      {isPartOfPreview && (
-                        <div className={`absolute inset-0 border-2 ${canPlace ? 'border-green-400 bg-green-500/30' : 'border-red-400 bg-red-500/30'}`}></div>
-                      )}
+                      {isPartOfPreview && <div className={`absolute inset-0 border-2 ${canPlace ? 'border-green-400 bg-green-500/30' : 'border-red-400 bg-red-500/30'}`}></div>}
                     </div>
                   );
                 })
@@ -344,8 +297,6 @@ export default function App() {
               Очистить сетку
             </button>
           </div>
-
-          {/* Хаб */}
           <Hub onBlockSelect={handleSelectBlockFromHub} />
         </div>
       </div>
