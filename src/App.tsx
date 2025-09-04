@@ -49,49 +49,64 @@ const flipBlock = (shape: BlockShape): BlockShape => {
   return shape.map(row => [...row].reverse());
 };
 
-function getTextureTransform(baseW: number, baseH: number, cell: number, rotationDeg: 0|90|180|270, flippedX: boolean) {
+function getTextureTransform(baseW: number, baseH: number, cell: number, rotationDeg: 0 | 90 | 180 | 270, flipped: boolean) {
+  const Wpx = baseW * cell;
+  const Hpx = baseH * cell;
+
   let tx = 0;
   let ty = 0;
-  if (flippedX) tx += baseW * cell;
-  switch (rotationDeg) {
-    case 0:
-      break;
-    case 90:
-      tx += baseH * cell;
-      break;
-    case 180:
-      tx += baseW * cell;
-      ty += baseH * cell;
-      break;
-    case 270:
-      ty += baseW * cell;
-      break;
+
+  if (!flipped) {
+    switch (rotationDeg) {
+      case 90: tx = Hpx; break;
+      case 180: tx = Wpx; ty = Hpx; break;
+      case 270: ty = Wpx; break;
+    }
+  } else {
+    // Смещения, рассчитанные для порядка "сначала rotate, потом scale"
+    switch (rotationDeg) {
+      case 0:
+        tx = Wpx;
+        break;
+      case 90:
+        // Сдвиг не нужен
+        break;
+      case 180:
+        ty = Hpx;
+        break;
+      case 270:
+        tx = Hpx;
+        ty = Wpx;
+        break;
+    }
   }
-  const scaleX = flippedX ? -1 : 1;
-  return { tx, ty, scaleX };
+  return { tx, ty };
 }
 
-function buildImageTransform(baseW: number, baseH: number, cell: number, rotationDeg: 0|90|180|270, flippedX: boolean, anchorPx: TextureAnchor, scalePx: number) {
-  const { tx, ty, scaleX } = getTextureTransform(baseW, baseH, cell, rotationDeg, flippedX);
-  // Порядок: translate(tx,ty) rotate R scaleX flip scale(scalePx) translate(-anchor.x, -anchor.y)
-  return `translate(${tx}px, ${ty}px) rotate(${rotationDeg}deg) scaleX(${scaleX}) scale(${scalePx}) translate(${-anchorPx.x}px, ${-anchorPx.y}px)`;
+function buildImageTransform(baseW: number, baseH: number, cell: number, rotationDeg: 0 | 90 | 180 | 270, flippedX: boolean, anchorPx: TextureAnchor, scalePx: number) {
+  const { tx, ty } = getTextureTransform(baseW, baseH, cell, rotationDeg, flippedX);
+  
+  const scaleXValue = flippedX ? -1 : 1;
+
+  // Порядок: scaleX применяется ПОСЛЕ rotate, что дает "отражение вида с экрана"
+  return `translate(${tx}px, ${ty}px) scale(${scaleXValue}, 1) rotate(${rotationDeg}deg) scale(${scalePx}) translate(${-anchorPx.x}px, ${-anchorPx.y}px)`;
 }
 
 // --- Компоненты ---
 const DraggableBlock: React.FC<DraggableBlockProps> = ({ item, onBlockSelect }) => {
   const blockWidth = item.shape[0]?.length || 1;
   const blockHeight = item.shape.length || 1;
-  const CELL = 32;
+  const CELL = 40;
   const ppc = item.texturePixelsPerCell ?? 60; // по умолчанию 60px на клетку
   const anchor = item.textureAnchor ?? { x: 0, y: 0 };
   const scalePx = CELL / ppc;
 
   return (
     <div
-      className="cursor-move select-none transition-transform hover:scale-110 inline-block"
+      className="cursor-move select-none transition-transform hover:scale-150 inline-block"
       onMouseDown={(e) => onBlockSelect(item.shape, e, item.texture, { ppc, anchor })}
     >
-      <div 
+      <div
         className="grid gap-0 border-2 border-blue-400 bg-gray-700"
         style={{ gridTemplateColumns: `repeat(${blockWidth}, ${CELL}px)` }}
       >
@@ -164,7 +179,7 @@ export default function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [activeBlockShape, setActiveBlockShape] = useState<BlockShape | null>(null);
   const [activeTexture, setActiveTexture] = useState<string | null>(null);
-  const [activeRotationDeg, setActiveRotationDeg] = useState<0|90|180|270>(0);
+  const [activeRotationDeg, setActiveRotationDeg] = useState<0 | 90 | 180 | 270>(0);
   const [activeFlippedX, setActiveFlippedX] = useState<boolean>(false);
   const [activeBaseW, setActiveBaseW] = useState<number>(0);
   const [activeBaseH, setActiveBaseH] = useState<number>(0);
@@ -173,7 +188,7 @@ export default function App() {
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [draggedBlockId, setDraggedBlockId] = useState<number | null>(null);
-  const [previewPosition, setPreviewPosition] = useState<BlockPosition>({ x: -1, y: -1 });
+  const [previewPosition, setPreviewPosition] = useState<BlockPosition>({ x: -10, y: -10 });
   const [canPlace, setCanPlace] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -186,7 +201,7 @@ export default function App() {
           if (cell) {
             const y = block.position.y + dy;
             const x = block.position.x + dx;
-            if (y < GRID_SIZE && x < GRID_SIZE) {
+            if (y >= 0 && y < GRID_SIZE && x >= 0 && x < GRID_SIZE) {
               grid[y][x] = block.id;
             }
           }
@@ -207,7 +222,14 @@ export default function App() {
     setActiveBaseH(shape.length || 0);
     setActivePpc(meta.ppc);
     setActiveAnchor(meta.anchor);
-    setDragOffset({ x: 0, y: 0 });
+    console.log(meta)
+
+    // Вычисляем смещение от точки клика до левого верхнего угла блока
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    setDragOffset({ x: offsetX, y: offsetY });
+
     setDragPosition({ x: e.clientX, y: e.clientY });
     setDraggedBlockId(null);
   };
@@ -231,9 +253,15 @@ export default function App() {
         setActiveBaseW(blockToDrag.textureBaseWidth);
         setActiveBaseH(blockToDrag.textureBaseHeight);
         setActivePpc(blockToDrag.texturePixelsPerCell);
+        // Для уже размещённого блока используем сохранённый якорь без перерасчёта
         setActiveAnchor(blockToDrag.textureAnchor);
         setDragPosition({ x: e.clientX, y: e.clientY });
-        setDragOffset({ x: (x - blockToDrag.position.x) * CELL_SIZE, y: (y - blockToDrag.position.y) * CELL_SIZE });
+        // Точный пиксельный оффсет точки захвата внутри блока
+        const blockLeft = blockToDrag.position.x * CELL_SIZE;
+        const blockTop = blockToDrag.position.y * CELL_SIZE;
+        const offsetX = (e.clientX - rect.left) - blockLeft;
+        const offsetY = (e.clientY - rect.top) - blockTop;
+        setDragOffset({ x: offsetX, y: offsetY });
       }
     }
   };
@@ -264,12 +292,16 @@ export default function App() {
           if (!canPlaceBlock) break;
         }
         setCanPlace(canPlaceBlock);
+        if (!canPlaceBlock) {
+          setPreviewPosition({ x: -10, y: -10 });
+        }
       }
+
     };
     const handleGlobalMouseUp = () => {
-      if (canPlace && activeBlockShape) {
+      if (canPlace && activeBlockShape && previewPosition.x >= 0 && previewPosition.y >= 0) {
         if (draggedBlockId) {
-          setPlacedBlocks(blocks => blocks.map(b => b.id === draggedBlockId ? { ...b, position: previewPosition, shape: activeBlockShape, rotationDeg: activeRotationDeg, flippedX: activeFlippedX, texturePixelsPerCell: activePpc, textureAnchor: activeAnchor } : b));
+          setPlacedBlocks(blocks => blocks.map(b => b.id === draggedBlockId ? { ...b, position: previewPosition, shape: activeBlockShape, rotationDeg: activeRotationDeg, flippedX: activeFlippedX } : b));
         } else {
           setPlacedBlocks(blocks => [...blocks, { id: nextId, shape: activeBlockShape, position: previewPosition, texture: activeTexture ?? null, rotationDeg: activeRotationDeg, flippedX: activeFlippedX, textureBaseWidth: activeBaseW, textureBaseHeight: activeBaseH, texturePixelsPerCell: activePpc, textureAnchor: activeAnchor }]);
           setNextId(id => id + 1);
@@ -278,7 +310,7 @@ export default function App() {
       setIsDragging(false);
       setActiveBlockShape(null);
       setDraggedBlockId(null);
-      setPreviewPosition({ x: -1, y: -1 });
+      setPreviewPosition({ x: -10, y: -10 });
       setActiveTexture(null);
     };
     document.addEventListener("mousemove", handleGlobalMouseMove);
@@ -293,8 +325,14 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isDragging || !activeBlockShape) return;
       if (e.key.toLowerCase() === 'r') {
+        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+        // Если блок отражен, вращаем его в обратную сторону, чтобы визуально это выглядело правильно
+        const rotationAmount = activeFlippedX ? -90 : 90;
+        setActiveRotationDeg(prev => ((prev + rotationAmount + 360) % 360) as 0 | 90 | 180 | 270);
+        // Применяем простое вращение к самой форме.
+        // Направление вращения формы не зависит от отражения текстуры.
         setActiveBlockShape(rotateBlock);
-        setActiveRotationDeg(prev => ((prev + 90) % 360) as 0|90|180|270);
+        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
       } else if (e.key.toLowerCase() === 'f') {
         setActiveBlockShape(flipBlock);
         setActiveFlippedX(prev => !prev);
@@ -302,7 +340,8 @@ export default function App() {
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => { document.removeEventListener('keydown', handleKeyDown); };
-  }, [isDragging, activeBlockShape]);
+    // Убедитесь, что в массиве зависимостей есть activeFlippedX
+  }, [isDragging, activeBlockShape, activeFlippedX]);
 
   const clearGrid = () => setPlacedBlocks([]);
 
@@ -346,7 +385,22 @@ export default function App() {
               })}
 
               {isDragging && activeBlockShape && activeTexture && (
-                <img src={activeTexture} alt="" className="pointer-events-none" style={{ position: 'absolute', left: previewPosition.x * CELL_SIZE + dragOffset.x, top: previewPosition.y * CELL_SIZE + dragOffset.y, zIndex: 20, transformOrigin: 'top left', transform: buildImageTransform(activeBaseW, activeBaseH, CELL_SIZE, activeRotationDeg, activeFlippedX, activeAnchor, scalePx), opacity: 0.9, maxWidth: 'none', height: 'auto' }} />
+                <img
+                  src={activeTexture}
+                  alt=""
+                  className="pointer-events-none"
+                  style={{
+                    position: previewPosition.x >= 0 ? 'absolute' : 'fixed',
+                    left: previewPosition.x >= 0 ? previewPosition.x * CELL_SIZE : dragPosition.x - dragOffset.x,
+                    top: previewPosition.y >= 0 ? previewPosition.y * CELL_SIZE : dragPosition.y - dragOffset.y,
+                    zIndex: 20,
+                    transformOrigin: 'top left',
+                    transform: buildImageTransform(activeBaseW, activeBaseH, CELL_SIZE, activeRotationDeg, activeFlippedX, activeAnchor, scalePx),
+                    opacity: 0.9,
+                    maxWidth: 'none',
+                    height: 'auto'
+                  }}
+                />
               )}
             </div>
             <button onClick={clearGrid} className="mt-4 w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Очистить сетку</button>
