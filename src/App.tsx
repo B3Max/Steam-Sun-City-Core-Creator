@@ -117,7 +117,7 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ item, onBlockSelect }) 
         )}
       </div>
       {item.texture && (
-        <div className="pointer-events-none" style={{ position: 'relative', width: blockWidth * CELL, height: blockHeight * CELL, marginTop: -blockHeight * CELL }}>
+        <div className="pointer-events-none" style={{ position: 'relative', width: blockWidth * CELL, height: blockHeight * CELL, marginTop: -blockHeight * CELL - 2, marginLeft: 2}}>
           <img
             src={item.texture}
             alt=""
@@ -146,7 +146,7 @@ const Hub = ({ onBlockSelect }: { onBlockSelect: (shape: BlockShape, e: React.Mo
   ];
 
   const items: PaletteItem[] = [
-    { shape: l_Block, texture: "/textures/small_mech.png", texturePixelsPerCell: 380, textureAnchor: { x: 140, y: 20 } },
+    { shape: l_Block, texture: "/textures/small_mech.png", texturePixelsPerCell: 370, textureAnchor: { x: 140, y: 20 } },
     { shape: r_Block, texture: "/textures/medium_mech.png", texturePixelsPerCell: 60, textureAnchor: { x: 0, y: 0 } },
     { shape: f_Block, texture: "/textures/stopper.png", texturePixelsPerCell: 60, textureAnchor: { x: 0, y: 0 } },
   ];
@@ -222,7 +222,6 @@ export default function App() {
     setActiveBaseH(shape.length || 0);
     setActivePpc(meta.ppc);
     setActiveAnchor(meta.anchor);
-    console.log(meta)
 
     // Вычисляем смещение от точки клика до левого верхнего угла блока
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -272,8 +271,8 @@ export default function App() {
       setDragPosition({ x: e.clientX, y: e.clientY });
       if (!gridRef.current) return;
       const rect = gridRef.current.getBoundingClientRect();
-      const gridX = Math.floor((e.clientX - rect.left - dragOffset.x) / CELL_SIZE);
-      const gridY = Math.floor((e.clientY - rect.top - dragOffset.y) / CELL_SIZE);
+      const gridX = Math.round((e.clientX - rect.left - dragOffset.x) / CELL_SIZE);
+      const gridY = Math.round((e.clientY - rect.top - dragOffset.y) / CELL_SIZE);
 
       if (previewPosition.x !== gridX || previewPosition.y !== gridY) {
         setPreviewPosition({ x: gridX, y: gridY });
