@@ -85,7 +85,7 @@ function getTextureTransform(baseW: number, baseH: number, cell: number, rotatio
 
 function buildImageTransform(baseW: number, baseH: number, cell: number, rotationDeg: 0 | 90 | 180 | 270, flippedX: boolean, anchorPx: TextureAnchor, scalePx: number) {
   const { tx, ty } = getTextureTransform(baseW, baseH, cell, rotationDeg, flippedX);
-  
+
   const scaleXValue = flippedX ? -1 : 1;
 
   // Порядок: scaleX применяется ПОСЛЕ rotate, что дает "отражение вида с экрана"
@@ -117,7 +117,7 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ item, onBlockSelect }) 
         )}
       </div>
       {item.texture && (
-        <div className="pointer-events-none" style={{ position: 'relative', width: blockWidth * CELL, height: blockHeight * CELL, marginTop: -blockHeight * CELL - 2, marginLeft: 2}}>
+        <div className="pointer-events-none" style={{ position: 'relative', width: blockWidth * CELL, height: blockHeight * CELL, marginTop: -blockHeight * CELL - 2, marginLeft: 2 }}>
           <img
             src={item.texture}
             alt=""
@@ -130,40 +130,53 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ item, onBlockSelect }) 
 };
 
 
-const Hub = ({ onBlockSelect }: { onBlockSelect: (shape: BlockShape, e: React.MouseEvent, texture: string | null, meta: { ppc: number; anchor: TextureAnchor }) => void }) => {
-  const l_Block: BlockShape = [
-    [true, true, false],
-    [true, true, true],
-  ];
-  const r_Block: BlockShape = [
-    [false, true, false, false],
-    [true, true, true, false],
-    [true, true, true, true],
-    [true, true, true, false],
-  ];
-  const f_Block: BlockShape = [
-    [true, true],
-  ];
+type JsonBlockData = {
+  id: string;
+  shape: number[][]; // При загрузке это массив чисел
+  texture?: string | null;
+  texturePixelsPerCell?: number;
+  textureAnchor?: TextureAnchor;
+};
 
-  const items: PaletteItem[] = [
-    { shape: l_Block, texture: "/textures/small_mech.png", texturePixelsPerCell: 370, textureAnchor: { x: 140, y: 20 } },
-    { shape: r_Block, texture: "/textures/medium_mech.png", texturePixelsPerCell: 60, textureAnchor: { x: 0, y: 0 } },
-    { shape: f_Block, texture: "/textures/stopper.png", texturePixelsPerCell: 60, textureAnchor: { x: 0, y: 0 } },
-  ];
+
+const Hub = ({ onBlockSelect }: { onBlockSelect: (shape: BlockShape, e: React.MouseEvent, texture: string | null, meta: { ppc: number; anchor: TextureAnchor }) => void }) => {
+  const [items, setItems] = useState<PaletteItem[]>([]);
+
+  useEffect(() => {
+    const loadItems = async () => {
+      try {
+        const response = await fetch("/blocks.json");
+        if (!response.ok) {
+          throw new Error("Failed to load blocks.json");
+        }
+        const data: JsonBlockData[] = await response.json();
+
+        // Преобразуем числовые формы в булевы
+        const loadedItems: PaletteItem[] = data.map(item => ({
+          shape: item.shape.map(row => row.map(cell => cell === 1)),
+          texture: item.texture ?? null,
+          texturePixelsPerCell: item.texturePixelsPerCell,
+          textureAnchor: item.textureAnchor,
+        }));
+
+        setItems(loadedItems);
+      } catch (error) {
+        console.error("Error loading block data:", error);
+      }
+    };
+    loadItems();
+  }, []);
 
   return (
     <div className="bg-gray-800 p-4 rounded-lg flex flex-col items-center gap-6">
       <h2 className="text-xl font-semibold mb-2 text-center">Детали Ядра</h2>
       <p className="text-sm text-gray-400 -mt-6 mb-2 text-center">Перетащите деталь на сетку</p>
+      <p>Нажмите 'R' для поворота</p>
+      <p>Нажмите 'F' для зеркала</p>
 
       {items.map((it, idx) => (
-        <DraggableBlock key={idx} item={it} onBlockSelect={onBlockSelect} />
+        it.shape.length > 0 && <DraggableBlock key={idx} item={it} onBlockSelect={onBlockSelect} />
       ))}
-
-      <div className="text-sm text-gray-400 mt-4 text-center">
-        <p>Нажмите 'R' для поворота</p>
-        <p>Нажмите 'F' для зеркала</p>
-      </div>
     </div>
   );
 };
@@ -355,7 +368,7 @@ export default function App() {
           </div>
         </div>
       )}
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-center">Steam Sun — Тестовая сборка</h1>
         <div className="flex gap-8 items-start justify-center">
           <div className="bg-gray-800 p-4 rounded-lg">

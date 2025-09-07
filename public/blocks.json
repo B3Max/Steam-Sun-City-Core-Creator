@@ -1,0 +1,738 @@
+[
+    {
+        "id": "",
+        "name_ru": "Малый часовой механизм",
+        "power": 2,
+        "control": 6,
+        "malfunction_risk": 2,
+        "price": 25,
+        "texture": "/textures/small_clockwork_mechanism.png",
+        "texturePixelsPerCell": 370,
+        "textureAnchor": {
+        "x": 140,
+        "y": 20
+        },
+        "shape": [
+        [1, 1, 0],
+        [1, 1, 1]
+        ]
+    },
+    {
+      "id": "medium_clockwork_mechanism",
+      "name_ru": "Средний часовой механизм",
+      "power": 5,
+      "control": 12,
+      "malfunction_risk": 4,
+      "price": 55,
+      "texture": "/textures/medium_clockwork_mechanism.png",
+      "texturePixelsPerCell": 112,
+      "textureAnchor": {
+          "x": 47,
+          "y": 44
+        },
+      "shape": [
+          [0, 1, 0, 0],
+          [1, 1, 1, 0],
+          [1, 1, 1, 1],
+          [1, 1, 1, 0]
+      ]
+    },
+    {
+        "id": "winding_limiter",
+        "name_ru": "Ограничитель завода",
+        "power": -1,
+        "control": 0,
+        "malfunction_risk": -5,
+        "price": 10,
+        "texture": "/textures/winding_limiter.png",
+        "texturePixelsPerCell": 115,
+        "textureAnchor": {
+            "x": 0,
+            "y": 4
+        },
+        "shape": [
+          [1, 1]
+        ]
+    },
+    {
+        "id": "compact_boiler",
+        "name_ru": "Компактный котел",
+        "power": 16,
+        "control": 5,
+        "malfunction_risk": 4,
+        "price": 65,
+        "texture": "/textures/compact_boiler.png",
+        "texturePixelsPerCell": 111,
+        "textureAnchor": {
+            "x": 47,
+            "y": 2
+        },
+        "shape": [
+            [0, 0, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1]
+        ]
+    },
+    {
+        "id": "large_boiler",
+        "name_ru": "Большой котел",
+        "power": 40,
+        "control": 20,
+        "malfunction_risk": 12,
+        "price": 175,
+        "texture": "/textures/large_boiler.png",
+        "texturePixelsPerCell": 233,
+        "textureAnchor": {
+            "x": 92,
+            "y": 76
+        },
+        "shape": [
+            [0, 0, 0, 1, 1, 1, 1, 0, 1, 1],
+            [0, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ]
+    },
+    {
+        "id": "fuel_injector",
+        "name_ru": "Дозатор топлива",
+        "power": -2,
+        "control": 2,
+        "malfunction_risk": -8,
+        "price": 30,
+        "texture": "/textures/fuel_injector.png",
+        "texturePixelsPerCell": 115,
+        "textureAnchor": {
+            "x": 2,
+            "y": 2
+        },
+        "shape": [
+            [0, 1, 1],
+            [0, 1, 1],
+            [1, 1, 0]
+        ]
+    },
+    {
+        "id": "himayer_system_firebox",
+        "name_ru": "Топка системы Химайера",
+        "power": 6,
+        "control": 1,
+        "malfunction_risk": 1,
+        "price": 20,
+        "texture": "/textures/himayer_system_firebox.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 1,
+            "y": 1
+        },
+        "shape": [
+            [0, 0, 1],
+            [1, 1, 1]
+        ]
+    },
+    {
+        "id": "small_technomagical_device",
+        "name_ru": "Малая техномагическая установка",
+        "power": 7,
+        "control": 7,
+        "malfunction_risk": 2,
+        "price": 50,
+        "texture": "/textures/small_technomagical_device.png",
+        "texturePixelsPerCell": 110,
+        "textureAnchor": {
+            "x": 2,
+            "y": 2
+        },
+        "shape": [
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 1, 0]
+        ]
+    },
+    {
+        "id": "medium_technomagical_device",
+        "name_ru": "Средняя техномагическая установка",
+        "power": 18,
+        "control": 18,
+        "malfunction_risk": 6,
+        "price": 180,
+        "texture": "/textures/medium_technomagical_device.png",
+        "texturePixelsPerCell": 112,
+        "textureAnchor": {
+            "x": 2,
+            "y": 2
+        },
+        "shape": [
+            [0, 0, 0, 1, 1],
+            [0, 0, 0, 1, 1],
+            [1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1],
+            [0, 0, 0, 1, 1],
+            [0, 0, 0, 1, 1]
+        ]
+    },
+    {
+        "id": "large_technomagical_device",
+        "name_ru": "Большая техномагическая установка",
+        "power": 35,
+        "control": 35,
+        "malfunction_risk": 11,
+        "price": 340,
+        "texture": "/textures/large_technomagical_device.png",
+        "texturePixelsPerCell": 234,
+        "textureAnchor": {
+            "x": 136,
+            "y": 6
+        },
+        "shape": [
+            [1, 1, 0, 0, 1, 1, 0, 0, 0],
+            [1, 1, 0, 0, 1, 1, 0, 0, 0],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 0, 0, 1, 1, 0, 0, 0],
+            [1, 1, 0, 0, 1, 1, 0, 0, 0]
+        ]
+    },
+    {
+        "id": "reserve_battery",
+        "name_ru": "Резервная батарея",
+        "power": 4,
+        "control": 2,
+        "malfunction_risk": -1,
+        "price": 40,
+        "texture": "/textures/reserve_battery.png",
+        "texturePixelsPerCell": 118,
+        "textureAnchor": {
+            "x": 3,
+            "y": 4
+        },
+        "shape": [
+            [1, 1],
+            [1, 1]
+        ]
+    },
+    {
+        "id": "experimental_emitter",
+        "name_ru": "Экспериментальный излучатель",
+        "power": 8,
+        "control": 2,
+        "malfunction_risk": 2,
+        "price": 50,
+        "texture": "/textures/experimental_emitter.png",
+        "texturePixelsPerCell": 224,
+        "textureAnchor": {
+            "x": 3,
+            "y": 70
+        },
+        "shape": [
+            [0, 1],
+            [1, 1],
+            [1, 1]
+        ]
+    },
+    {
+        "id": "anchor_escapement",
+        "name_ru": "Анкерный механизм",
+        "power": 1,
+        "control": 5,
+        "malfunction_risk": 0,
+        "price": 20,
+        "texture": "/textures/anchor_escapement.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 2,
+            "y": 26
+        },
+        "shape": [
+            [0, 1, 0],
+            [1, 1, 1]
+        ]
+    },
+    {
+        "id": "gear_train",
+        "name_ru": "Ангренаж",
+        "power": 2,
+        "control": 0,
+        "malfunction_risk": -1,
+        "price": 15,
+        "texture": "/textures/gear_train.png",
+        "texturePixelsPerCell": 111,
+        "textureAnchor": {
+            "x": 44,
+            "y": 39
+        },
+        "shape": [
+            [0, 1],
+            [1, 1]
+        ]
+    },
+    {
+        "id": "balance_wheel",
+        "name_ru": "Балансир",
+        "power": 1,
+        "control": 6,
+        "malfunction_risk": 1,
+        "price": 20,
+        "texture": "/textures/balance_wheel.png",
+        "texturePixelsPerCell": 114,
+        "textureAnchor": {
+            "x": 38,
+            "y": 4
+        },
+        "shape": [
+            [1, 1],
+            [1, 1]
+        ]
+    },
+    {
+        "id": "vibration_damper",
+        "name_ru": "Компенсатор вибраций",
+        "power": 0,
+        "control": 4,
+        "malfunction_risk": -5,
+        "price": 40,
+        "texture": "/textures/vibration_damper.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 45,
+            "y": 3
+        },
+        "shape": [
+            [0, 1, 1, 0],
+            [1, 1, 1, 1],
+            [0, 1, 1, 0]
+        ]
+    },
+    {
+        "id": "powerful_springs",
+        "name_ru": "Мощные пружины",
+        "power": 3,
+        "control": 1,
+        "malfunction_risk": 2,
+        "price": 10,
+        "texture": "/textures/powerful_springs.png",
+        "texturePixelsPerCell": 165,
+        "textureAnchor": {
+            "x": 54,
+            "y": 2
+        },
+        "shape": [
+            [1, 1]
+        ]
+    },
+    {
+        "id": "crank",
+        "name_ru": "Кривошип",
+        "power": 4,
+        "control": 0,
+        "malfunction_risk": 1,
+        "price": 20,
+        "texture": "/textures/crank.png",
+        "texturePixelsPerCell": 112,
+        "textureAnchor": {
+            "x": 42,
+            "y": 42
+        },
+        "shape": [
+            [0, 0, 1],
+            [1, 1, 1]
+        ]
+    },
+    {   
+        "id": "pendulum",
+        "name_ru": "Маятник",
+        "power": -1,
+        "control": -1,
+        "malfunction_risk": -1,
+        "price": 5,
+        "texture": "/textures/pendulum.png",
+        "texturePixelsPerCell": 112,
+        "textureAnchor": {
+            "x": 2,
+            "y": 40
+        },
+        "shape": [
+            [1]
+        ]
+    },
+    {
+        "id": "rotation_synchronizer",
+        "name_ru": "Синхронизатор вращения",
+        "power": 5,
+        "control": 7,
+        "malfunction_risk": 3,
+        "price": 45,
+        "texture": "/textures/rotation_synchronizer.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 2,
+            "y": 42
+        },
+        "shape": [
+            [1, 0, 1, 0],
+            [1, 1, 1, 0],
+            [1, 1, 1, 1]
+        ]
+    },
+    {
+        "id": "tourbillon",
+        "name_ru": "Турбийон",
+        "power": 3,
+        "control": 7,
+        "malfunction_risk": 1,
+        "price": 35,
+        "texture": "/textures/tourbillon.png",
+        "texturePixelsPerCell": 112,
+        "textureAnchor": {
+            "x": 44,
+            "y": 4
+        },
+        "shape": [
+            [0, 1, 1],
+            [1, 1, 1],
+            [1, 1, 0]
+        ]
+    },
+    {
+        "id": "emergency_valve",
+        "name_ru": "Аварийный клапан",
+        "power": 0,
+        "control": 1,
+        "malfunction_risk": -4,
+        "price": 20,
+        "texture": "/textures/emergency_valve.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 31,
+            "y": 31
+        },
+        "shape": [
+            [0, 1, 0],
+            [1, 1, 1]
+        ]
+    },
+    {
+        "id": "condensation_tank",
+        "name_ru": "Конденсационный резервуар",
+        "power": 0,
+        "control": 4,
+        "malfunction_risk": -2,
+        "price": 30,
+        "texture": "/textures/condensation_tank.png",
+        "texturePixelsPerCell": 109,
+        "textureAnchor": {
+            "x": 38,
+            "y": 4
+        },
+        "shape": [
+            [0, 0, 1, 1],
+            [1, 1, 1, 1]
+        ]
+    },
+    {
+        "id": "pressure_supercharger",
+        "name_ru": "Нагнетатель давления",
+        "power": 9,
+        "control": 3,
+        "malfunction_risk": 2,
+        "price": 35,
+        "texture": "/textures/pressure_supercharger.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 2,
+            "y": 47
+        },
+        "shape": [
+            [0, 1, 0],
+            [1, 1, 1],
+            [1, 1, 1]
+        ]
+    },
+    {
+        "id": "steam_distributor",
+        "name_ru": "Парораспределитель",
+        "power": -1,
+        "control": 7,
+        "malfunction_risk": 0,
+        "price": 35,
+        "texture": "/textures/steam_distributor.png",
+        "texturePixelsPerCell": 112,
+        "textureAnchor": {
+            "x": 42,
+            "y": 2
+        },
+        "shape": [
+            [0, 0, 1, 1],
+            [1, 1, 1, 0],
+            [0, 0, 1, 1]
+        ]
+    },
+    {
+        "id": "whistle",
+        "name_ru": "Свисток",
+        "power": -1,
+        "control": -1,
+        "malfunction_risk": -1,
+        "price": 5,
+        "texture": "/textures/whistle.png",
+        "texturePixelsPerCell": 112,
+        "textureAnchor": {
+            "x": 42,
+            "y": 2
+        },
+        "shape": [
+            [1]
+        ]
+    },
+    {
+        "id": "turbo_blower",
+        "name_ru": "Турбированный поддув",
+        "power": 8,
+        "control": 2,
+        "malfunction_risk": 2,
+        "price": 30,
+        "texture": "/textures/turbo_blower.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 41,
+            "y": 2
+        },
+        "shape": [
+            [0, 1, 1, 1],
+            [1, 1, 1, 0]
+        ]
+    },
+    {
+        "id": "set_of_fuses",
+        "name_ru": "Набор предохранителей",
+        "power": 0,
+        "control": 0,
+        "malfunction_risk": -4,
+        "price": 60,
+        "texture": "/textures/set_of_fuses.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 44,
+            "y": 2
+        },
+        "shape": [
+            [0, 1, 0, 0],
+            [1, 1, 1, 1],
+            [0, 0, 1, 0]
+        ]
+    },
+    {
+        "id": "energy_dissipator",
+        "name_ru": "Рассеиватель энергии",
+        "power": -1,
+        "control": -1,
+        "malfunction_risk": -1,
+        "price": 10,
+        "texture": "/textures/energy_dissipator.png",
+        "texturePixelsPerCell": 112,
+        "textureAnchor": {
+            "x": 2,
+            "y": 2
+        },
+        "shape": [
+            [1]
+        ]
+    },
+    {
+        "id": "ruby_resonator",
+        "name_ru": "Рубиновый резонатор",
+        "power": 6,
+        "control": 6,
+        "malfunction_risk": 2,
+        "price": 60,
+        "texture": "/textures/ruby_resonator.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 46,
+            "y": 2
+        },
+        "shape": [
+            [0, 1, 1, 0],
+            [1, 1, 1, 1]
+        ]
+    },
+    {
+        "id": "sapphire_lens",
+        "name_ru": "Сапфировая линза",
+        "power": 3,
+        "control": 3,
+        "malfunction_risk": 1,
+        "price": 50,
+        "texture": "/textures/sapphire_lens.png",
+        "texturePixelsPerCell": 112,
+        "textureAnchor": {
+            "x": 42,
+            "y": 2
+        },
+        "shape": [
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 1, 0]
+        ]
+    },
+    {
+        "id": "aetheric_filter",
+        "name_ru": "Эфирный фильтр",
+        "power": 10,
+        "control": 10,
+        "malfunction_risk": 2,
+        "price": 100,
+        "texture": "/textures/aetheric_filter.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 42,
+            "y": 5
+        },
+        "shape": [
+            [0, 1, 0, 1, 0],
+            [0, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1]
+        ]
+    },
+    {
+        "id": "shafts",
+        "name_ru": "Валы",
+        "power": 0,
+        "control": 0,
+        "malfunction_risk": 0,
+        "price": 0,
+        "texture": "/textures/shafts.png",
+        "texturePixelsPerCell": 60,
+        "textureAnchor": {
+            "x": 0,
+            "y": 0
+        },
+        "shape": [
+            [1]
+        ]
+    },
+    {
+        "id": "cables",
+        "name_ru": "Кабели",
+        "power": 0,
+        "control": 0,
+        "malfunction_risk": 0,
+        "price": 0,
+        "texture": "/textures/cables.png",
+        "texturePixelsPerCell": 60,
+        "textureAnchor": {
+            "x": 0,
+            "y": 0
+        },
+        "shape": [
+            [1]
+        ]
+    },
+    {
+        "id": "pipes",
+        "name_ru": "Трубы",
+        "power": 0,
+        "control": 0,
+        "malfunction_risk": 0,
+        "price": 0,
+        "texture": "/textures/pipes.png",
+        "texturePixelsPerCell": 60,
+        "textureAnchor": {
+            "x": 0,
+            "y": 0
+        },
+        "shape": [
+            [1]
+        ]
+    },
+    {
+        "id": "bellows",
+        "name_ru": "Меха",
+        "power": 1,
+        "control": 2,
+        "malfunction_risk": 1,
+        "price": 20,
+        "texture": "/textures/bellows.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 15,
+            "y": 44
+        },
+        "shape": [
+            [1, 0],
+            [1, 1]
+        ]
+    },
+    {
+        "id": "butterfly_valve",
+        "name_ru": "Лепестковый дроссель",
+        "power": 0,
+        "control": 5,
+        "malfunction_risk": 2,
+        "price": 30,
+        "texture": "/textures/butterfly_valve.png",
+        "texturePixelsPerCell": 111,
+        "textureAnchor": {
+            "x": 36,
+            "y": 2
+        },
+        "shape": [
+            [0, 1, 0],
+            [1, 1, 1],
+            [0, 1, 0]
+        ]
+    },
+    {
+        "id": "piston",
+        "name_ru": "Поршень",
+        "power": 2,
+        "control": 1,
+        "malfunction_risk": 1,
+        "price": 20,
+        "texture": "/textures/piston.png",
+        "texturePixelsPerCell": 112,
+        "textureAnchor": {
+            "x": 38,
+            "y": 2
+        },
+        "shape": [
+            [1, 1, 1]
+        ]
+    },
+    {
+        "id": "technomagical_engine",
+        "name_ru": "Техномагический двигатель",
+        "power": 2,
+        "control": 2,
+        "malfunction_risk": 0,
+        "price": 50,
+        "texture": "/textures/technomagical_engine.png",
+        "texturePixelsPerCell": 112,
+        "textureAnchor": {
+            "x": 40,
+            "y": 2
+        },
+        "shape": [
+            [0, 1, 1],
+            [1, 1, 0]
+        ]
+    },
+    {
+        "id": "technomagical_compressor",
+        "name_ru": "Техномагический компрессор",
+        "power": 2,
+        "control": 2,
+        "malfunction_risk": 0,
+        "price": 60,
+        "texture": "/textures/technomagical_compressor.png",
+        "texturePixelsPerCell": 113,
+        "textureAnchor": {
+            "x": 36,
+            "y": 2
+        },
+        "shape": [
+            [0, 1, 1, 1],
+            [1, 1, 1, 0]
+        ]
+    }
+]
