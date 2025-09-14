@@ -5,6 +5,11 @@ type BlockShape = boolean[][];
 type BlockPosition = { x: number; y: number };
 type TextureAnchor = { x: number; y: number }; // в пикселях исходной текстуры (базовая ориентация)
 
+export type GridSize = {
+  x: number,
+  y: number
+}
+
 type PlacedBlock = {
   id: number;
   shape: BlockShape;
@@ -177,10 +182,7 @@ const Hub = ({ items, onBlockSelect }: {
 
 
 // --- Основной компонент приложения ---
-export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] }) {
-  const GRID_SIZE = 7; // TODO: Make dynamic 
-  const CELL_SIZE = 60; // TODO: Make dynamic 
-
+export default function Consctructor({ initialBlocks, gridSize }: { initialBlocks: JsonBlockData[], gridSize: GridSize }) {
   const [placedBlocks, setPlacedBlocks] = useState<PlacedBlock[]>([]);
   const [nextId, setNextId] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
@@ -199,7 +201,28 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
   const [canPlace, setCanPlace] = useState(false);
   const [inGrid, setInGrid] = useState(false);
   const [conflictingCells, setConflictingCells] = useState<BlockPosition[]>([]);
+  const [cellSize, setCellSize] = useState(0);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const calculateCellSize = () => {
+      const screenWidth = window.innerWidth; 
+      
+      // Разделяем доступную ширину на количество колонок
+      const newSize = screenWidth / gridSize.x / 2;
+      setCellSize(newSize);
+    };
+
+    // Вызываем функцию при первом рендере и при изменении размера окна
+    calculateCellSize();
+    window.addEventListener('resize', calculateCellSize);
+
+    // Убираем слушатель при размонтировании компонента
+    return () => {
+      window.removeEventListener('resize', calculateCellSize);
+    };
+  }, [gridSize]); // Пересчитываем только при изменении размера сетки
+
 
   const palette: PaletteItem[] = useMemo(
     () =>
@@ -215,7 +238,7 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
   );
 
   const computedGrid = useMemo(() => {
-    const grid: (number | null)[][] = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
+    const grid: (number | null)[][] = Array(gridSize.y).fill(null).map(() => Array(gridSize.x).fill(null));
     placedBlocks.forEach(block => {
       if (block.id === draggedBlockId) return;
       block.shape.forEach((row, dy) => {
@@ -223,7 +246,7 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
           if (cell) {
             const y = block.position.y + dy;
             const x = block.position.x + dx;
-            if (y >= 0 && y < GRID_SIZE && x >= 0 && x < GRID_SIZE) {
+            if (y >= 0 && y < gridSize.y && x >= 0 && x < gridSize.x) {
               grid[y][x] = block.id;
             }
           }
@@ -244,6 +267,7 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
     setActiveBaseH(shape.length || 0);
     setActivePpc(meta.ppc);
     setActiveAnchor(meta.anchor);
+    setPreviewPosition({ x: -10, y: -10 });
 
     // Вычисляем смещение от точки клика до левого верхнего угла блока
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -258,8 +282,8 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
   const handleMouseDownOnGrid = (e: React.MouseEvent) => {
     if (!gridRef.current) return;
     const rect = gridRef.current.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) / CELL_SIZE);
-    const y = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+    const x = Math.floor((e.clientX - rect.left) / cellSize);
+    const y = Math.floor((e.clientY - rect.top) / cellSize);
     const blockId = computedGrid[y]?.[x];
     if (blockId) {
       const blockToDrag = placedBlocks.find(b => b.id === blockId);
@@ -278,8 +302,8 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
         setActiveAnchor(blockToDrag.textureAnchor);
         setDragPosition({ x: e.clientX, y: e.clientY });
         // Точный пиксельный оффсет точки захвата внутри блока
-        const blockLeft = blockToDrag.position.x * CELL_SIZE;
-        const blockTop = blockToDrag.position.y * CELL_SIZE;
+        const blockLeft = blockToDrag.position.x * cellSize;
+        const blockTop = blockToDrag.position.y * cellSize;
         const offsetX = (e.clientX - rect.left) - blockLeft;
         const offsetY = (e.clientY - rect.top) - blockTop;
         setDragOffset({ x: offsetX, y: offsetY });
@@ -294,8 +318,8 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
       if (!gridRef.current) return;
       const rect = gridRef.current.getBoundingClientRect();
 
-      const gridX = Math.round((e.clientX - rect.left - dragOffset.x) / CELL_SIZE);
-      const gridY = Math.round((e.clientY - rect.top - dragOffset.y) / CELL_SIZE);
+      const gridX = Math.round((e.clientX - rect.left - dragOffset.x) / cellSize);
+      const gridY = Math.round((e.clientY - rect.top - dragOffset.y) / cellSize);
 
       setPreviewPosition({ x: gridX, y: gridY });
 
@@ -309,7 +333,7 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
             const newY = gridY + dy;
             const isOccupied = computedGrid[newY]?.[newX] !== null;
 
-            if (newX >= GRID_SIZE || newY >= GRID_SIZE || newX < 0 || newY < 0 || isOccupied) {
+            if (newX >= gridSize.x || newY >= gridSize.y || newX < 0 || newY < 0 || isOccupied) {
               newConflictingCells.push({ x: newX, y: newY });
               canPlaceBlock = false;
             }
@@ -365,27 +389,27 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
 
   const clearGrid = () => setPlacedBlocks([]);
 
-  const scalePx = CELL_SIZE / activePpc;
+  const scalePx = cellSize / activePpc;
 
   return (
     <div className="bg-gray-900 text-white p-8">
       {isDragging && activeBlockShape && (
         <div className="fixed pointer-events-none z-50" style={{ left: dragPosition.x - dragOffset.x, top: dragPosition.y - dragOffset.y }}>
-          <div className="grid gap-0 border-2 border-green-400 opacity-40 bg-transparent" style={{ gridTemplateColumns: `repeat(${activeBlockShape[0].length}, ${CELL_SIZE}px)`, gridTemplateRows: `repeat(${activeBlockShape.length}, ${CELL_SIZE}px)` }}>
-            {activeBlockShape.map((row, y) => row.map((cell, x) => (<div key={`${x}-${y}`} style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px`, backgroundColor: cell ? 'rgba(66,153,225,0.12)' : 'transparent' }} />)))}
+          <div className="grid gap-0 border-2 border-green-400 opacity-40 bg-transparent" style={{ gridTemplateColumns: `repeat(${activeBlockShape[0].length}, ${cellSize}px)`, gridTemplateRows: `repeat(${activeBlockShape.length}, ${cellSize}px)` }}>
+            {activeBlockShape.map((row, y) => row.map((cell, x) => (<div key={`${x}-${y}`} style={{ width: `${cellSize}px`, height: `${cellSize}px`, backgroundColor: cell ? 'rgba(66,153,225,0.12)' : 'transparent' }} />)))}
           </div>
         </div>
       )}
-      <div className="max-w-5xl mx-auto">
+      <div className="mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-center">Steam Sun — Тестовая сборка</h1>
         <div className="flex gap-8 items-start justify-center">
           <div className="bg-gray-800 p-4 rounded-lg">
             <h2 className="text-xl font-semibold mb-4 text-center">Сетка ядра 7x7</h2>
-            <div ref={gridRef} className="grid grid-cols-7 gap-0 border-2 border-gray-600 cursor-grab relative" onMouseDown={handleMouseDownOnGrid}>
-              {Array.from({ length: GRID_SIZE }).map((_, y) => Array.from({ length: GRID_SIZE }).map((_, x) => {
+            <div ref={gridRef} className={`grid gap-0 border-2 border-gray-600 relative`} style={{ gridTemplateColumns: `repeat(${gridSize.x}, minmax(0, 1fr))` }} onMouseDown={handleMouseDownOnGrid}>
+              {Array.from({ length: gridSize.y }).map((_, y) => Array.from({ length: gridSize.x }).map((_, x) => {
                 const isOccupied = computedGrid[y][x] !== null;
                 return (
-                  <div key={`${x}-${y}`} className="relative" style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px`, border: '1px solid #4A5568', backgroundColor: isOccupied ? 'rgba(255,255,255,0.02)' : '#2D3748' }}>
+                  <div key={`${x}-${y}`} className="relative" style={{ width: `${cellSize}px`, height: `${cellSize}px`, border: '1px solid #4A5568', backgroundColor: isOccupied ? 'rgba(255,255,255,0.02)' : '#2D3748' }}>
                     {
                       isDragging && activeBlockShape &&
                       x >= previewPosition.x && x < previewPosition.x + (activeBlockShape[0]?.length || 0) &&
@@ -407,10 +431,10 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
               {placedBlocks.map(block => {
                 if (block.id === draggedBlockId) return null;
                 if (!block.texture) return null;
-                const left = block.position.x * CELL_SIZE;
-                const top = block.position.y * CELL_SIZE;
-                const scale = CELL_SIZE / block.texturePixelsPerCell;
-                const transform = buildImageTransform(block.textureBaseWidth, block.textureBaseHeight, CELL_SIZE, block.rotationDeg, block.flippedX, block.textureAnchor, scale);
+                const left = block.position.x * cellSize;
+                const top = block.position.y * cellSize;
+                const scale = cellSize / block.texturePixelsPerCell;
+                const transform = buildImageTransform(block.textureBaseWidth, block.textureBaseHeight, cellSize, block.rotationDeg, block.flippedX, block.textureAnchor, scale);
                 return (
                   <img key={`tex-${block.id}`} src={block.texture} alt="" className="pointer-events-none" style={{ position: 'absolute', left, top, zIndex: 10, transformOrigin: 'top left', transform, maxWidth: 'none', height: 'auto' }} />
                 );
@@ -423,11 +447,11 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
                   className="pointer-events-none"
                   style={{
                     position: inGrid ? 'absolute' : 'fixed',
-                    left: inGrid ? previewPosition.x * CELL_SIZE : dragPosition.x - dragOffset.x,
-                    top: inGrid ? previewPosition.y * CELL_SIZE : dragPosition.y - dragOffset.y,
+                    left: inGrid ? previewPosition.x * cellSize : dragPosition.x - dragOffset.x,
+                    top: inGrid ? previewPosition.y * cellSize : dragPosition.y - dragOffset.y,
                     zIndex: 20,
                     transformOrigin: 'top left',
-                    transform: buildImageTransform(activeBaseW, activeBaseH, CELL_SIZE, activeRotationDeg, activeFlippedX, activeAnchor, scalePx),
+                    transform: buildImageTransform(activeBaseW, activeBaseH, cellSize, activeRotationDeg, activeFlippedX, activeAnchor, scalePx),
                     opacity: 0.9,
                     maxWidth: 'none',
                     height: 'auto'

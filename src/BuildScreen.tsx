@@ -1,12 +1,13 @@
-import App from "./Constructor"; // это твой переделанный конструктор с сеткой
-import { JsonBlockData } from "./Constructor"; // можно вынести типы в отдельный файл, если нужно
+import Constructor, { JsonBlockData, GridSize } from "./Constructor";
 
 export default function BuildScreen({
   blocks,
   onBack,
+  gridSize, // Принимаем gridSize
 }: {
   blocks: JsonBlockData[];
   onBack: () => void;
+  gridSize: GridSize; // Обновляем тип пропсов
 }) {
   return (
     <div className="p-4">
@@ -18,8 +19,7 @@ export default function BuildScreen({
       </button>
       <h2 className="text-xl mb-4">Постройка ядра</h2>
 
-      {/* Передаём выбранные блоки как initialBlocks */}
-      <App initialBlocks={blocks} />
+      <Constructor initialBlocks={blocks} gridSize={gridSize} />
     </div>
   );
 }
