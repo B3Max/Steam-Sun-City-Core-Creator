@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import SelectScreen from "./SelectScreen";
 import BuildScreen from "./BuildScreen";
-import { JsonBlockData } from "./App";
+import { JsonBlockData } from "./Constructor";
 
 export default function SteamSunApp() {
   const [step, setStep] = useState<"select" | "build">("select");
   const [blocks, setBlocks] = useState<JsonBlockData[]>([]);
   const [selectedBlocks, setSelectedBlocks] = useState<JsonBlockData[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]); // New state for selected IDs
 
-  // Загружаем blocks.json один раз
+  // Load blocks.json once
   useEffect(() => {
     fetch("/blocks.json")
       .then((res) => res.json())
@@ -21,8 +22,10 @@ export default function SteamSunApp() {
       {step === "select" && (
         <SelectScreen
           blocks={blocks}
-          onConfirm={(chosen) => {
+          initialSelectedIds={selectedIds} // Pass the selected IDs down
+          onConfirm={(chosen, ids) => {
             setSelectedBlocks(chosen);
+            setSelectedIds(ids); // Store the IDs
             setStep("build");
           }}
         />

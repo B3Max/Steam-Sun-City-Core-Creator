@@ -1,14 +1,17 @@
 import React from "react";
-import { JsonBlockData } from "./App";
+import { JsonBlockData } from "./Constructor";
 
 export default function SelectScreen({
   blocks,
+  initialSelectedIds, // New prop
   onConfirm,
 }: {
   blocks: JsonBlockData[];
-  onConfirm: (selectedBlocks: JsonBlockData[]) => void;
+  initialSelectedIds: string[]; // New prop type
+  onConfirm: (selectedBlocks: JsonBlockData[], selectedIds: string[]) => void; // Update prop type
 }) {
-  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
+  // Use the initialSelectedIds to initialize the state
+  const [selectedIds, setSelectedIds] = React.useState<string[]>(initialSelectedIds);
 
   function toggleBlock(id: string) {
     setSelectedIds((prev) =>
@@ -44,7 +47,7 @@ export default function SelectScreen({
         ))}
       </div>
       <button
-        onClick={() => onConfirm(selectedBlocks)}
+        onClick={() => onConfirm(selectedBlocks, selectedIds)} // Pass selectedIds back
         className="mt-6 bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded"
         disabled={selectedBlocks.length === 0}
       >

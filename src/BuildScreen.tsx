@@ -1,5 +1,5 @@
-import App from "./App"; // это твой переделанный конструктор с сеткой
-import { JsonBlockData } from "./App"; // можно вынести типы в отдельный файл, если нужно
+import App from "./Constructor"; // это твой переделанный конструктор с сеткой
+import { JsonBlockData } from "./Constructor"; // можно вынести типы в отдельный файл, если нужно
 
 export default function BuildScreen({
   blocks,
