@@ -297,28 +297,29 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
       const gridX = Math.round((e.clientX - rect.left - dragOffset.x) / CELL_SIZE);
       const gridY = Math.round((e.clientY - rect.top - dragOffset.y) / CELL_SIZE);
 
-      if (previewPosition.x !== gridX || previewPosition.y !== gridY) {
-        setPreviewPosition({ x: gridX, y: gridY });
-        let canPlaceBlock = true;
-        for (let dy = 0; dy < activeBlockShape.length; dy++) {
-          for (let dx = 0; dx < activeBlockShape[dy].length; dx++) {
-            if (activeBlockShape[dy][dx]) {
-              const newX = gridX + dx;
-              const newY = gridY + dy;
-              if (newX >= GRID_SIZE || newY >= GRID_SIZE || newX < 0 || newY < 0 || (computedGrid[newY]?.[newX] !== null && computedGrid[newY][newX] !== draggedBlockId)) {
-                canPlaceBlock = false;
-                break;
-              }
+      setPreviewPosition({ x: gridX, y: gridY });
+
+      const newConflictingCells: BlockPosition[] = [];
+      let canPlaceBlock = true;
+
+      for (let dy = 0; dy < activeBlockShape.length; dy++) {
+        for (let dx = 0; dx < activeBlockShape[dy].length; dx++) {
+          if (activeBlockShape[dy][dx]) {
+            const newX = gridX + dx;
+            const newY = gridY + dy;
+            const isOccupied = computedGrid[newY]?.[newX] !== null;
+
+            if (newX >= GRID_SIZE || newY >= GRID_SIZE || newX < 0 || newY < 0 || isOccupied) {
+              newConflictingCells.push({ x: newX, y: newY });
+              canPlaceBlock = false;
             }
           }
-          if (!canPlaceBlock) break;
-        }
-        setCanPlace(canPlaceBlock);
-        if (!canPlaceBlock) {
-          setPreviewPosition({ x: -10, y: -10 });
         }
       }
 
+      setConflictingCells(newConflictingCells);
+      setCanPlace(canPlaceBlock);
+      setInGrid(e.clientX > rect.left && e.clientX < rect.right && e.clientY > rect.top && e.clientY < rect.bottom);
     };
     const handleGlobalMouseUp = () => {
       if (canPlace && activeBlockShape && previewPosition.x >= 0 && previewPosition.y >= 0) {
@@ -332,7 +333,6 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
       setIsDragging(false);
       setActiveBlockShape(null);
       setDraggedBlockId(null);
-      setPreviewPosition({ x: -10, y: -10 });
       setActiveTexture(null);
     };
     document.addEventListener("mousemove", handleGlobalMouseMove);
@@ -341,7 +341,7 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
       document.removeEventListener("mousemove", handleGlobalMouseMove);
       document.removeEventListener("mouseup", handleGlobalMouseUp);
     };
-  }, [isDragging, activeBlockShape, dragOffset, computedGrid, nextId, placedBlocks, previewPosition, canPlace, draggedBlockId, activeRotationDeg, activeFlippedX, activeBaseW, activeBaseH, activeTexture, activePpc, activeAnchor]);
+  }, [isDragging, activeBlockShape, dragOffset, computedGrid, nextId, placedBlocks, previewPosition, canPlace, draggedBlockId, activeRotationDeg, activeFlippedX, activeBaseW, activeBaseH, activeTexture, activePpc, activeAnchor, conflictingCells, inGrid]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -384,10 +384,22 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
             <div ref={gridRef} className="grid grid-cols-7 gap-0 border-2 border-gray-600 cursor-grab relative" onMouseDown={handleMouseDownOnGrid}>
               {Array.from({ length: GRID_SIZE }).map((_, y) => Array.from({ length: GRID_SIZE }).map((_, x) => {
                 const isOccupied = computedGrid[y][x] !== null;
-                const isPartOfPreview = isDragging && activeBlockShape && x >= previewPosition.x && x < previewPosition.x + (activeBlockShape[0]?.length || 0) && y >= previewPosition.y && y < previewPosition.y + activeBlockShape.length && activeBlockShape[y - previewPosition.y]?.[x - previewPosition.x];
                 return (
                   <div key={`${x}-${y}`} className="relative" style={{ width: `${CELL_SIZE}px`, height: `${CELL_SIZE}px`, border: '1px solid #4A5568', backgroundColor: isOccupied ? 'rgba(255,255,255,0.02)' : '#2D3748' }}>
-                    {isPartOfPreview && <div className={`absolute inset-0 border-2 ${canPlace ? 'border-green-400 bg-green-500/20' : 'border-red-400 bg-red-500/20'}`}></div>}
+                    {
+                      isDragging && activeBlockShape &&
+                      x >= previewPosition.x && x < previewPosition.x + (activeBlockShape[0]?.length || 0) &&
+                      y >= previewPosition.y && y < previewPosition.y + activeBlockShape.length &&
+                      activeBlockShape[y - previewPosition.y]?.[x - previewPosition.x] &&
+                      (
+                        canPlace
+                          ? <div className={`absolute inset-0 border-2 border-green-400/70 bg-green-500/10 z-30`}></div>
+                          : (
+                            conflictingCells.some(c => c.x === x && c.y === y) &&
+                            <div className={`absolute inset-0 border-2 border-red-400/70 bg-red-500/10 z-30`}></div>
+                          )
+                      )
+                    }
                   </div>
                 );
               }))}
@@ -410,9 +422,9 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
                   alt=""
                   className="pointer-events-none"
                   style={{
-                    position: previewPosition.x >= 0 ? 'absolute' : 'fixed',
-                    left: previewPosition.x >= 0 ? previewPosition.x * CELL_SIZE : dragPosition.x - dragOffset.x,
-                    top: previewPosition.y >= 0 ? previewPosition.y * CELL_SIZE : dragPosition.y - dragOffset.y,
+                    position: inGrid ? 'absolute' : 'fixed',
+                    left: inGrid ? previewPosition.x * CELL_SIZE : dragPosition.x - dragOffset.x,
+                    top: inGrid ? previewPosition.y * CELL_SIZE : dragPosition.y - dragOffset.y,
                     zIndex: 20,
                     transformOrigin: 'top left',
                     transform: buildImageTransform(activeBaseW, activeBaseH, CELL_SIZE, activeRotationDeg, activeFlippedX, activeAnchor, scalePx),
