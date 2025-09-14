@@ -18,6 +18,19 @@ type PlacedBlock = {
   textureAnchor: TextureAnchor; // якорь текстуры (левый-верх сетки)
 };
 
+export type JsonBlockData = {
+  id: string;
+  name_ru: string;
+  power: number;
+  control: number;
+  malfunction_risk: number;
+  price: number;
+  texture: string | null;
+  texturePixelsPerCell: number;
+  textureAnchor: TextureAnchor;
+  shape: number[][];
+};
+
 type PaletteItem = {
   shape: BlockShape;
   texture: string | null;
@@ -27,7 +40,12 @@ type PaletteItem = {
 
 type DraggableBlockProps = {
   item: PaletteItem;
-  onBlockSelect: (shape: BlockShape, e: React.MouseEvent, texture: string | null, meta: { ppc: number; anchor: TextureAnchor }) => void;
+  onBlockSelect: (
+    shape: BlockShape,
+    e: React.MouseEvent,
+    texture: string | null,
+    meta: { ppc: number; anchor: TextureAnchor }
+  ) => void;
 };
 
 // --- Вспомогательные функции для трансформации блоков ---
@@ -49,7 +67,13 @@ const flipBlock = (shape: BlockShape): BlockShape => {
   return shape.map(row => [...row].reverse());
 };
 
-function getTextureTransform(baseW: number, baseH: number, cell: number, rotationDeg: 0 | 90 | 180 | 270, flipped: boolean) {
+function getTextureTransform(
+  baseW: number,
+  baseH: number,
+  cell: number,
+  rotationDeg: 0 | 90 | 180 | 270,
+  flipped: boolean
+) {
   const Wpx = baseW * cell;
   const Hpx = baseH * cell;
 
@@ -65,25 +89,24 @@ function getTextureTransform(baseW: number, baseH: number, cell: number, rotatio
   } else {
     // Смещения, рассчитанные для порядка "сначала rotate, потом scale"
     switch (rotationDeg) {
-      case 0:
-        tx = Wpx;
-        break;
-      case 90:
-        // Сдвиг не нужен
-        break;
-      case 180:
-        ty = Hpx;
-        break;
-      case 270:
-        tx = Hpx;
-        ty = Wpx;
-        break;
+      case 0: tx = Wpx; break;
+      case 90: break; // Сдвиг не нужен
+      case 180: ty = Hpx; break;
+      case 270: tx = Hpx; ty = Wpx; break;
     }
   }
   return { tx, ty };
 }
 
-function buildImageTransform(baseW: number, baseH: number, cell: number, rotationDeg: 0 | 90 | 180 | 270, flippedX: boolean, anchorPx: TextureAnchor, scalePx: number) {
+function buildImageTransform(
+  baseW: number,
+  baseH: number,
+  cell: number,
+  rotationDeg: 0 | 90 | 180 | 270,
+  flippedX: boolean,
+  anchorPx: TextureAnchor,
+  scalePx: number
+) {
   const { tx, ty } = getTextureTransform(baseW, baseH, cell, rotationDeg, flippedX);
 
   const scaleXValue = flippedX ? -1 : 1;
@@ -129,44 +152,15 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ item, onBlockSelect }) 
   );
 };
 
-
-type JsonBlockData = {
-  id: string;
-  shape: number[][]; // При загрузке это массив чисел
-  texture?: string | null;
-  texturePixelsPerCell?: number;
-  textureAnchor?: TextureAnchor;
-};
-
-
-const Hub = ({ onBlockSelect }: { onBlockSelect: (shape: BlockShape, e: React.MouseEvent, texture: string | null, meta: { ppc: number; anchor: TextureAnchor }) => void }) => {
-  const [items, setItems] = useState<PaletteItem[]>([]);
-
-  useEffect(() => {
-    const loadItems = async () => {
-      try {
-        const response = await fetch("/blocks.json");
-        if (!response.ok) {
-          throw new Error("Failed to load blocks.json");
-        }
-        const data: JsonBlockData[] = await response.json();
-
-        // Преобразуем числовые формы в булевы
-        const loadedItems: PaletteItem[] = data.map(item => ({
-          shape: item.shape.map(row => row.map(cell => cell === 1)),
-          texture: item.texture ?? null,
-          texturePixelsPerCell: item.texturePixelsPerCell,
-          textureAnchor: item.textureAnchor,
-        }));
-
-        setItems(loadedItems);
-      } catch (error) {
-        console.error("Error loading block data:", error);
-      }
-    };
-    loadItems();
-  }, []);
-
+const Hub = ({ items, onBlockSelect }: {
+  items: PaletteItem[];
+  onBlockSelect: (
+    shape: BlockShape,
+    e: React.MouseEvent,
+    texture: string | null,
+    meta: { ppc: number; anchor: TextureAnchor }
+  ) => void;
+}) => {
   return (
     <div className="bg-gray-800 p-4 rounded-lg flex flex-col items-center gap-6">
       <h2 className="text-xl font-semibold mb-2 text-center">Детали Ядра</h2>
@@ -183,9 +177,9 @@ const Hub = ({ onBlockSelect }: { onBlockSelect: (shape: BlockShape, e: React.Mo
 
 
 // --- Основной компонент приложения ---
-export default function App() {
-  const GRID_SIZE = 7;
-  const CELL_SIZE = 60;
+export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] }) {
+  const GRID_SIZE = 7; // TODO: Make dynamic 
+  const CELL_SIZE = 60; // TODO: Make dynamic 
 
   const [placedBlocks, setPlacedBlocks] = useState<PlacedBlock[]>([]);
   const [nextId, setNextId] = useState(1);
@@ -204,6 +198,19 @@ export default function App() {
   const [previewPosition, setPreviewPosition] = useState<BlockPosition>({ x: -10, y: -10 });
   const [canPlace, setCanPlace] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  const palette: PaletteItem[] = useMemo(
+    () =>
+      initialBlocks.map((b) => ({
+        id: b.id,
+        name_ru: b.name_ru,
+        shape: b.shape.map((row) => row.map((c) => c === 1)),
+        texture: b.texture,
+        texturePixelsPerCell: b.texturePixelsPerCell ?? 60,
+        textureAnchor: b.textureAnchor ?? { x: 0, y: 0 },
+      })),
+    [initialBlocks]
+  );
 
   const computedGrid = useMemo(() => {
     const grid: (number | null)[][] = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(null));
@@ -337,16 +344,14 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isDragging || !activeBlockShape) return;
       if (e.key.toLowerCase() === 'r') {
-        // --- НАЧАЛО ИЗМЕНЕНИЙ ---
         // Если блок отражен, вращаем его в обратную сторону, чтобы визуально это выглядело правильно
         const rotationAmount = activeFlippedX ? -90 : 90;
         setActiveRotationDeg(prev => ((prev + rotationAmount + 360) % 360) as 0 | 90 | 180 | 270);
         // Применяем простое вращение к самой форме.
         // Направление вращения формы не зависит от отражения текстуры.
-        setActiveBlockShape(rotateBlock);
-        // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+        setActiveBlockShape(prev => prev ? rotateBlock(prev) : prev);
       } else if (e.key.toLowerCase() === 'f') {
-        setActiveBlockShape(flipBlock);
+        setActiveBlockShape(prev => prev ? flipBlock(prev) : prev);
         setActiveFlippedX(prev => !prev);
       }
     };
@@ -360,7 +365,7 @@ export default function App() {
   const scalePx = CELL_SIZE / activePpc;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8">
+    <div className="bg-gray-900 text-white p-8">
       {isDragging && activeBlockShape && (
         <div className="fixed pointer-events-none z-50" style={{ left: dragPosition.x - dragOffset.x, top: dragPosition.y - dragOffset.y }}>
           <div className="grid gap-0 border-2 border-green-400 opacity-40 bg-transparent" style={{ gridTemplateColumns: `repeat(${activeBlockShape[0].length}, ${CELL_SIZE}px)`, gridTemplateRows: `repeat(${activeBlockShape.length}, ${CELL_SIZE}px)` }}>
@@ -417,7 +422,7 @@ export default function App() {
             </div>
             <button onClick={clearGrid} className="mt-4 w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Очистить сетку</button>
           </div>
-          <Hub onBlockSelect={handleSelectBlockFromHub} />
+          <Hub items={palette} onBlockSelect={handleSelectBlockFromHub} />
         </div>
       </div>
     </div>
