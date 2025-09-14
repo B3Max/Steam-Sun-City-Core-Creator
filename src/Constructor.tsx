@@ -197,6 +197,8 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
   const [draggedBlockId, setDraggedBlockId] = useState<number | null>(null);
   const [previewPosition, setPreviewPosition] = useState<BlockPosition>({ x: -10, y: -10 });
   const [canPlace, setCanPlace] = useState(false);
+  const [inGrid, setInGrid] = useState(false);
+  const [conflictingCells, setConflictingCells] = useState<BlockPosition[]>([]);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const palette: PaletteItem[] = useMemo(
@@ -291,6 +293,7 @@ export default function App({ initialBlocks }: { initialBlocks: JsonBlockData[] 
       setDragPosition({ x: e.clientX, y: e.clientY });
       if (!gridRef.current) return;
       const rect = gridRef.current.getBoundingClientRect();
+
       const gridX = Math.round((e.clientX - rect.left - dragOffset.x) / CELL_SIZE);
       const gridY = Math.round((e.clientY - rect.top - dragOffset.y) / CELL_SIZE);
 
