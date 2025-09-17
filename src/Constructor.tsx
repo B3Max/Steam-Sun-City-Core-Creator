@@ -182,7 +182,11 @@ const Hub = ({ items, onBlockSelect }: {
 
 
 // --- Основной компонент приложения ---
-export default function Consctructor({ initialBlocks, gridSize }: { initialBlocks: JsonBlockData[], gridSize: GridSize }) {
+export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
+  initialBlocks: JsonBlockData[],
+  gridSize: GridSize,
+  gridTexture: string
+}) {
   const [placedBlocks, setPlacedBlocks] = useState<PlacedBlock[]>([]);
   const [nextId, setNextId] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
@@ -206,8 +210,8 @@ export default function Consctructor({ initialBlocks, gridSize }: { initialBlock
 
   useEffect(() => {
     const calculateCellSize = () => {
-      const screenWidth = window.innerWidth; 
-      
+      const screenWidth = window.innerWidth;
+
       // Разделяем доступную ширину на количество колонок
       const newSize = screenWidth / gridSize.x / 2;
       setCellSize(newSize);
@@ -404,60 +408,78 @@ export default function Consctructor({ initialBlocks, gridSize }: { initialBlock
         <h1 className="text-3xl font-bold mb-8 text-center">Steam Sun — Тестовая сборка</h1>
         <div className="flex gap-8 items-start justify-center">
           <div className="bg-gray-800 p-4 rounded-lg">
-            <h2 className="text-xl font-semibold mb-4 text-center">Сетка ядра 7x7</h2>
-            <div ref={gridRef} className={`grid gap-0 border-2 border-gray-600 relative`} style={{ gridTemplateColumns: `repeat(${gridSize.x}, minmax(0, 1fr))` }} onMouseDown={handleMouseDownOnGrid}>
-              {Array.from({ length: gridSize.y }).map((_, y) => Array.from({ length: gridSize.x }).map((_, x) => {
-                const isOccupied = computedGrid[y][x] !== null;
-                return (
-                  <div key={`${x}-${y}`} className="relative" style={{ width: `${cellSize}px`, height: `${cellSize}px`, border: '1px solid #4A5568', backgroundColor: isOccupied ? 'rgba(255,255,255,0.02)' : '#2D3748' }}>
-                    {
-                      isDragging && activeBlockShape &&
-                      x >= previewPosition.x && x < previewPosition.x + (activeBlockShape[0]?.length || 0) &&
-                      y >= previewPosition.y && y < previewPosition.y + activeBlockShape.length &&
-                      activeBlockShape[y - previewPosition.y]?.[x - previewPosition.x] &&
-                      (
-                        canPlace
-                          ? <div className={`absolute inset-0 border-2 border-green-400/70 bg-green-500/10 z-30`}></div>
-                          : (
-                            conflictingCells.some(c => c.x === x && c.y === y) &&
-                            <div className={`absolute inset-0 border-2 border-red-400/70 bg-red-500/10 z-30`}></div>
-                          )
-                      )
-                    }
-                  </div>
-                );
-              }))}
+            <h2 className="text-xl font-semibold mb-4 text-center">Сетка ядра {gridSize.x}x{gridSize.y}</h2>
+            <div className="relative">
+              {/* Фоновая текстура */}
+              <img
+                src={gridTexture}
+                alt="Grid background"
+                className="absolute top-0 left-0 w-full h-full pointer-events-none z-0"
+                style={{
+                  // TODO: Надо выровнять текстуру по сетке и сделать также как и с текстурами на блоках
+                }}
+              />
+              <div
+                ref={gridRef}
+                className={`grid gap-0 border-2 border-gray-600 relative`}
+                style={{
+                  gridTemplateColumns: `repeat(${gridSize.x}, minmax(0, 1fr))`,
+                  zIndex: 1
+                }}
+                onMouseDown={handleMouseDownOnGrid}
+              >
+                {Array.from({ length: gridSize.y }).map((_, y) => Array.from({ length: gridSize.x }).map((_, x) => {
+                  return (
+                    <div key={`${x}-${y}`} className="relative" style={{ width: `${cellSize}px`, height: `${cellSize}px`, border: '1px solid #181a15ff'}}>
+                      {
+                        isDragging && activeBlockShape &&
+                        x >= previewPosition.x && x < previewPosition.x + (activeBlockShape[0]?.length || 0) &&
+                        y >= previewPosition.y && y < previewPosition.y + activeBlockShape.length &&
+                        activeBlockShape[y - previewPosition.y]?.[x - previewPosition.x] &&
+                        (
+                          canPlace
+                            ? <div className={`absolute inset-0 border-2 border-green-400/70 bg-green-500/10 z-30`}></div>
+                            : (
+                              conflictingCells.some(c => c.x === x && c.y === y) &&
+                              <div className={`absolute inset-0 border-2 border-red-400/70 bg-red-500/10 z-30`}></div>
+                            )
+                        )
+                      }
+                    </div>
+                  );
+                }))}
 
-              {placedBlocks.map(block => {
-                if (block.id === draggedBlockId) return null;
-                if (!block.texture) return null;
-                const left = block.position.x * cellSize;
-                const top = block.position.y * cellSize;
-                const scale = cellSize / block.texturePixelsPerCell;
-                const transform = buildImageTransform(block.textureBaseWidth, block.textureBaseHeight, cellSize, block.rotationDeg, block.flippedX, block.textureAnchor, scale);
-                return (
-                  <img key={`tex-${block.id}`} src={block.texture} alt="" className="pointer-events-none" style={{ position: 'absolute', left, top, zIndex: 10, transformOrigin: 'top left', transform, maxWidth: 'none', height: 'auto' }} />
-                );
-              })}
+                {placedBlocks.map(block => {
+                  if (block.id === draggedBlockId) return null;
+                  if (!block.texture) return null;
+                  const left = block.position.x * cellSize;
+                  const top = block.position.y * cellSize;
+                  const scale = cellSize / block.texturePixelsPerCell;
+                  const transform = buildImageTransform(block.textureBaseWidth, block.textureBaseHeight, cellSize, block.rotationDeg, block.flippedX, block.textureAnchor, scale);
+                  return (
+                    <img key={`tex-${block.id}`} src={block.texture} alt="" className="pointer-events-none" style={{ position: 'absolute', left, top, zIndex: 10, transformOrigin: 'top left', transform, maxWidth: 'none', height: 'auto' }} />
+                  );
+                })}
 
-              {isDragging && activeBlockShape && activeTexture && (
-                <img
-                  src={activeTexture}
-                  alt=""
-                  className="pointer-events-none"
-                  style={{
-                    position: inGrid ? 'absolute' : 'fixed',
-                    left: inGrid ? previewPosition.x * cellSize : dragPosition.x - dragOffset.x,
-                    top: inGrid ? previewPosition.y * cellSize : dragPosition.y - dragOffset.y,
-                    zIndex: 20,
-                    transformOrigin: 'top left',
-                    transform: buildImageTransform(activeBaseW, activeBaseH, cellSize, activeRotationDeg, activeFlippedX, activeAnchor, scalePx),
-                    opacity: 0.9,
-                    maxWidth: 'none',
-                    height: 'auto'
-                  }}
-                />
-              )}
+                {isDragging && activeBlockShape && activeTexture && (
+                  <img
+                    src={activeTexture}
+                    alt=""
+                    className="pointer-events-none"
+                    style={{
+                      position: inGrid ? 'absolute' : 'fixed',
+                      left: inGrid ? previewPosition.x * cellSize : dragPosition.x - dragOffset.x,
+                      top: inGrid ? previewPosition.y * cellSize : dragPosition.y - dragOffset.y,
+                      zIndex: 20,
+                      transformOrigin: 'top left',
+                      transform: buildImageTransform(activeBaseW, activeBaseH, cellSize, activeRotationDeg, activeFlippedX, activeAnchor, scalePx),
+                      opacity: 0.9,
+                      maxWidth: 'none',
+                      height: 'auto'
+                    }}
+                  />
+                )}
+              </div>
             </div>
             <button onClick={clearGrid} className="mt-4 w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Очистить сетку</button>
           </div>

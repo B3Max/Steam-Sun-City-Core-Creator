@@ -3,12 +3,16 @@ import SelectScreen from "./SelectScreen";
 import BuildScreen from "./BuildScreen";
 import { JsonBlockData, GridSize } from "./Constructor";
 
+// Импортируем новый тип
+import { GridOption } from "./SelectScreen"; 
+
 export default function SteamSunApp() {
   const [step, setStep] = useState<"select" | "build">("select");
   const [blocks, setBlocks] = useState<JsonBlockData[]>([]);
   const [selectedBlocks, setSelectedBlocks] = useState<JsonBlockData[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [selectedGridSize, setSelectedGridSize] = useState<GridSize>({ x: 7, y: 7 });
+  // Храним всю информацию о сетке
+  const [gridOption, setGridOption] = useState<GridOption | null>(null);
 
   // Загружаем blocks.json один раз
   useEffect(() => {
@@ -23,20 +27,21 @@ export default function SteamSunApp() {
       {step === "select" && (
         <SelectScreen
           blocks={blocks}
-          initialSelectedIds={selectedIds} // Передаём сохранённые ID
-          onConfirm={(chosen, ids, chosenGridSize) => {
+          initialSelectedIds={selectedIds}
+          onConfirm={(chosen, ids, chosenGridOption) => {
             setSelectedBlocks(chosen);
-            setSelectedIds(ids); // Сохраняем ID для возврата
-            setSelectedGridSize(chosenGridSize);
+            setSelectedIds(ids);
+            setGridOption(chosenGridOption); // <-- Сохраняем всю опцию
             setStep("build");
           }}
         />
       )}
 
-      {step === "build" && (
+      {step === "build" && gridOption && ( // <-- Добавили проверку на gridOption
         <BuildScreen
           blocks={selectedBlocks}
-          gridSize={selectedGridSize}
+          gridSize={gridOption.size} // <-- Передаем размер
+          gridTexture={gridOption.texture} // <-- Передаем текстуру
           onBack={() => setStep("select")}
         />
       )}

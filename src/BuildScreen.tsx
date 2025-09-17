@@ -3,11 +3,13 @@ import Constructor, { JsonBlockData, GridSize } from "./Constructor";
 export default function BuildScreen({
   blocks,
   onBack,
-  gridSize, // Принимаем gridSize
+  gridSize,
+  gridTexture, // <-- Принимаем новую пропсу
 }: {
   blocks: JsonBlockData[];
   onBack: () => void;
-  gridSize: GridSize; // Обновляем тип пропсов
+  gridSize: GridSize;
+  gridTexture: string; // <-- Объявляем тип
 }) {
   return (
     <div className="p-4">
@@ -19,7 +21,12 @@ export default function BuildScreen({
       </button>
       <h2 className="text-xl mb-4">Постройка ядра</h2>
 
-      <Constructor initialBlocks={blocks} gridSize={gridSize} />
+      {/* Передаем текстуру дальше в Constructor */}
+      <Constructor 
+        initialBlocks={blocks} 
+        gridSize={gridSize} 
+        gridTexture={gridTexture} 
+      />
     </div>
   );
 }
