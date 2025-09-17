@@ -12,15 +12,16 @@ export type GridSize = {
 
 type PlacedBlock = {
   id: number;
+  jsonId: string;
   shape: BlockShape;
   position: BlockPosition;
   texture?: string | null;
   rotationDeg: 0 | 90 | 180 | 270;
   flippedX: boolean;
-  textureBaseWidth: number;  // ширина блока при создании (в клетках)
-  textureBaseHeight: number; // высота блока при создании (в клетках)
-  texturePixelsPerCell: number; // сколько пикселей текстуры соответствует 1 клетке
-  textureAnchor: TextureAnchor; // якорь текстуры (левый-верх сетки)
+  textureBaseWidth: number;
+  textureBaseHeight: number;
+  texturePixelsPerCell: number;
+  textureAnchor: TextureAnchor;
 };
 
 export type JsonBlockData = {
@@ -37,6 +38,7 @@ export type JsonBlockData = {
 };
 
 type PaletteItem = {
+  id: string;
   shape: BlockShape;
   texture: string | null;
   texturePixelsPerCell?: number;
@@ -46,6 +48,7 @@ type PaletteItem = {
 type DraggableBlockProps = {
   item: PaletteItem;
   onBlockSelect: (
+    jsonId: string,
     shape: BlockShape,
     e: React.MouseEvent,
     texture: string | null,
@@ -132,7 +135,7 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ item, onBlockSelect }) 
   return (
     <div
       className="cursor-move select-none transition-transform hover:scale-150 inline-block"
-      onMouseDown={(e) => onBlockSelect(item.shape, e, item.texture, { ppc, anchor })}
+      onMouseDown={(e) => onBlockSelect(item.id, item.shape, e, item.texture, { ppc, anchor })}
     >
       <div
         className="grid gap-0 border-2 border-blue-400 bg-gray-700"
@@ -160,6 +163,7 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ item, onBlockSelect }) 
 const Hub = ({ items, onBlockSelect }: {
   items: PaletteItem[];
   onBlockSelect: (
+    jsonId: string,
     shape: BlockShape,
     e: React.MouseEvent,
     texture: string | null,
@@ -191,6 +195,7 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
   const [nextId, setNextId] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [activeBlockShape, setActiveBlockShape] = useState<BlockShape | null>(null);
+  const [activeJsonId, setActiveJsonId] = useState<string | null>(null);
   const [activeTexture, setActiveTexture] = useState<string | null>(null);
   const [activeRotationDeg, setActiveRotationDeg] = useState<0 | 90 | 180 | 270>(0);
   const [activeFlippedX, setActiveFlippedX] = useState<boolean>(false);
@@ -260,9 +265,19 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
     return grid;
   }, [placedBlocks, draggedBlockId]);
 
-  const handleSelectBlockFromHub = (shape: BlockShape, e: React.MouseEvent, texture: string | null, meta: { ppc: number; anchor: TextureAnchor }) => {
+  const handleSelectBlockFromHub = (
+    jsonId: string,
+    shape: BlockShape,
+    e: React.MouseEvent,
+    texture: string | null,
+    meta: {
+      ppc: number;
+      anchor: TextureAnchor
+    }
+  ) => {
     e.preventDefault();
     setIsDragging(true);
+    setActiveJsonId(jsonId);
     setActiveBlockShape(shape);
     setActiveTexture(texture ?? null);
     setActiveRotationDeg(0);
@@ -294,6 +309,7 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
       if (blockToDrag) {
         e.preventDefault();
         setIsDragging(true);
+        setActiveJsonId(blockToDrag.jsonId);
         setActiveBlockShape(blockToDrag.shape);
         setDraggedBlockId(blockToDrag.id);
         setActiveTexture(blockToDrag.texture ?? null);
@@ -350,11 +366,23 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
       setInGrid(e.clientX > rect.left && e.clientX < rect.right && e.clientY > rect.top && e.clientY < rect.bottom);
     };
     const handleGlobalMouseUp = () => {
-      if (canPlace && activeBlockShape && previewPosition.x >= 0 && previewPosition.y >= 0) {
+      if (canPlace && activeBlockShape && activeJsonId && previewPosition.x >= 0 && previewPosition.y >= 0) {
         if (draggedBlockId) {
           setPlacedBlocks(blocks => blocks.map(b => b.id === draggedBlockId ? { ...b, position: previewPosition, shape: activeBlockShape, rotationDeg: activeRotationDeg, flippedX: activeFlippedX } : b));
         } else {
-          setPlacedBlocks(blocks => [...blocks, { id: nextId, shape: activeBlockShape, position: previewPosition, texture: activeTexture ?? null, rotationDeg: activeRotationDeg, flippedX: activeFlippedX, textureBaseWidth: activeBaseW, textureBaseHeight: activeBaseH, texturePixelsPerCell: activePpc, textureAnchor: activeAnchor }]);
+          setPlacedBlocks(blocks => [...blocks, {
+            id: nextId,
+            jsonId: activeJsonId,
+            shape: activeBlockShape,
+            position: previewPosition,
+            texture: activeTexture ?? null,
+            rotationDeg: activeRotationDeg,
+            flippedX: activeFlippedX,
+            textureBaseWidth: activeBaseW,
+            textureBaseHeight: activeBaseH,
+            texturePixelsPerCell: activePpc,
+            textureAnchor: activeAnchor
+          }]);
           setNextId(id => id + 1);
         }
       }
@@ -362,6 +390,7 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
       setActiveBlockShape(null);
       setDraggedBlockId(null);
       setActiveTexture(null);
+      setActiveJsonId(null);
     };
     document.addEventListener("mousemove", handleGlobalMouseMove);
     document.addEventListener("mouseup", handleGlobalMouseUp);
@@ -369,7 +398,7 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
       document.removeEventListener("mousemove", handleGlobalMouseMove);
       document.removeEventListener("mouseup", handleGlobalMouseUp);
     };
-  }, [isDragging, activeBlockShape, dragOffset, computedGrid, nextId, placedBlocks, previewPosition, canPlace, draggedBlockId, activeRotationDeg, activeFlippedX, activeBaseW, activeBaseH, activeTexture, activePpc, activeAnchor, conflictingCells, inGrid]);
+  }, [isDragging, activeBlockShape, dragOffset, computedGrid, nextId, placedBlocks, previewPosition, canPlace, draggedBlockId, activeRotationDeg, activeFlippedX, activeBaseW, activeBaseH, activeTexture, activePpc, activeAnchor, conflictingCells, inGrid, activeJsonId]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -394,6 +423,28 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
   const clearGrid = () => setPlacedBlocks([]);
 
   const scalePx = cellSize / activePpc;
+
+  const totalStats = useMemo(() => {
+    const stats = {
+      power: 0,
+      control: 0,
+      malfunction_risk: 0,
+      price: 0,
+    };
+
+    placedBlocks.forEach(placed => {
+      const sourceBlock = initialBlocks.find(b => b.id === placed.jsonId);
+      if (sourceBlock) {
+        stats.power += sourceBlock.power;
+        stats.control += sourceBlock.control;
+        stats.malfunction_risk += sourceBlock.malfunction_risk;
+        stats.price += sourceBlock.price;
+      }
+    });
+
+    return stats;
+  }, [placedBlocks, initialBlocks]);
+
 
   return (
     <div className="bg-gray-900 text-white p-8">
@@ -430,7 +481,7 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
               >
                 {Array.from({ length: gridSize.y }).map((_, y) => Array.from({ length: gridSize.x }).map((_, x) => {
                   return (
-                    <div key={`${x}-${y}`} className="relative" style={{ width: `${cellSize}px`, height: `${cellSize}px`, border: '1px solid #181a15ff'}}>
+                    <div key={`${x}-${y}`} className="relative" style={{ width: `${cellSize}px`, height: `${cellSize}px`, border: '1px solid #181a15ff' }}>
                       {
                         isDragging && activeBlockShape &&
                         x >= previewPosition.x && x < previewPosition.x + (activeBlockShape[0]?.length || 0) &&
@@ -482,6 +533,22 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
               </div>
             </div>
             <button onClick={clearGrid} className="mt-4 w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Очистить сетку</button>
+          </div>
+          <div className="mt-6 p-4 border border-gray-600 rounded-lg">
+            <h3 className="text-lg font-semibold text-center mb-3">Итоговые параметры сборки</h3>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              <span className="text-gray-400">Мощность:</span>
+              <span className="font-mono text-emerald-400">{totalStats.power}</span>
+
+              <span className="text-gray-400">Контроль:</span>
+              <span className="font-mono text-sky-400">{totalStats.control}</span>
+
+              <span className="text-gray-400">Риск неисправности:</span>
+              <span className="font-mono text-amber-400">{totalStats.malfunction_risk}%</span>
+
+              <span className="text-gray-400">Цена:</span>
+              <span className="font-mono text-green-400">{totalStats.price} ⚙️</span>
+            </div>
           </div>
           <Hub items={palette} onBlockSelect={handleSelectBlockFromHub} />
         </div>
