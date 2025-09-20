@@ -13,8 +13,12 @@ RUN npm install
 # Копируем исходный код
 COPY . .
 
+
 # Собираем приложение
-RUN npm run build
+RUN npm run deploy
+# RUN npm run build
+
+RUN npm install gh-pages --save-dev
 
 # Устанавливаем serve для раздачи статических файлов
 RUN npm install -g serve
