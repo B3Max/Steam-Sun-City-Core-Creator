@@ -602,7 +602,7 @@
         "malfunction_risk": 0,
         "price": 0,
         "texture": "./textures/shafts.png",
-        "texturePixelsPerCell": 120,
+        "texturePixelsPerCell": 115,
         "textureAnchor": {
             "x": 1,
             "y": 1
@@ -619,7 +619,7 @@
         "malfunction_risk": 0,
         "price": 0,
         "texture": "./textures/cables.png",
-        "texturePixelsPerCell": 120,
+        "texturePixelsPerCell": 115,
         "textureAnchor": {
             "x": 1,
             "y": 1
@@ -636,7 +636,7 @@
         "malfunction_risk": 0,
         "price": 0,
         "texture": "./textures/pipes.png",
-        "texturePixelsPerCell": 120,
+        "texturePixelsPerCell": 115,
         "textureAnchor": {
             "x": 1,
             "y": 1
