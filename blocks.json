@@ -604,8 +604,8 @@
         "texture": "./textures/shafts.png",
         "texturePixelsPerCell": 120,
         "textureAnchor": {
-            "x": 0,
-            "y": 0
+            "x": 1,
+            "y": 1
         },
         "shape": [
             [1]
@@ -621,8 +621,8 @@
         "texture": "./textures/cables.png",
         "texturePixelsPerCell": 120,
         "textureAnchor": {
-            "x": 0,
-            "y": 0
+            "x": 1,
+            "y": 1
         },
         "shape": [
             [1]
@@ -638,8 +638,8 @@
         "texture": "./textures/pipes.png",
         "texturePixelsPerCell": 120,
         "textureAnchor": {
-            "x": 0,
-            "y": 0
+            "x": 1,
+            "y": 1
         },
         "shape": [
             [1]
