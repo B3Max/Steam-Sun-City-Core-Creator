@@ -1,12 +1,11 @@
 {
   "name": "steam-sun-constructor",
-  "version": "1.0.0",
+  "version": "0.2.4",
+  "homepage": "https://B3Max.github.io/Steam-Sun-City-Core-Creator",
   "description": "Steam Sun — Конструктор изобретений",
-  "main": "index.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
@@ -21,10 +20,11 @@
     "@types/react-dom": "^18.2.7",
     "@vitejs/plugin-react": "^4.0.3",
     "autoprefixer": "^10.4.14",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.4.27",
     "tailwindcss": "^3.3.0",
     "typescript": "^5.0.2",
-    "vite": "^4.4.5"
+    "vite": "^4.5.14"
   },
   "repository": {
     "type": "git",
@@ -34,6 +34,5 @@
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/B3Max/Steam-Sun-City-Core-Creator/issues"
-  },
-  "homepage": "https://B3Max.github.io/Steam-Sun-City-Core-Creator"
+  }
 }
