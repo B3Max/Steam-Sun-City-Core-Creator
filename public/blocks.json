@@ -6,7 +6,7 @@
         "control": 6,
         "malfunction_risk": 2,
         "price": 25,
-        "texture": "/textures/small_clockwork_mechanism.png",
+        "texture": "./textures/small_clockwork_mechanism.png",
         "texturePixelsPerCell": 370,
         "textureAnchor": {
         "x": 140,
@@ -24,7 +24,7 @@
       "control": 12,
       "malfunction_risk": 4,
       "price": 55,
-      "texture": "/textures/medium_clockwork_mechanism.png",
+      "texture": "./textures/medium_clockwork_mechanism.png",
       "texturePixelsPerCell": 112,
       "textureAnchor": {
           "x": 47,
@@ -44,7 +44,7 @@
         "control": 0,
         "malfunction_risk": -5,
         "price": 10,
-        "texture": "/textures/winding_limiter.png",
+        "texture": "./textures/winding_limiter.png",
         "texturePixelsPerCell": 115,
         "textureAnchor": {
             "x": 0,
@@ -61,7 +61,7 @@
         "control": 5,
         "malfunction_risk": 4,
         "price": 65,
-        "texture": "/textures/compact_boiler.png",
+        "texture": "./textures/compact_boiler.png",
         "texturePixelsPerCell": 111,
         "textureAnchor": {
             "x": 47,
@@ -80,7 +80,7 @@
         "control": 20,
         "malfunction_risk": 12,
         "price": 175,
-        "texture": "/textures/large_boiler.png",
+        "texture": "./textures/large_boiler.png",
         "texturePixelsPerCell": 233,
         "textureAnchor": {
             "x": 92,
@@ -100,7 +100,7 @@
         "control": 2,
         "malfunction_risk": -8,
         "price": 30,
-        "texture": "/textures/fuel_injector.png",
+        "texture": "./textures/fuel_injector.png",
         "texturePixelsPerCell": 115,
         "textureAnchor": {
             "x": 2,
@@ -119,7 +119,7 @@
         "control": 1,
         "malfunction_risk": 1,
         "price": 20,
-        "texture": "/textures/himayer_system_firebox.png",
+        "texture": "./textures/himayer_system_firebox.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 1,
@@ -137,7 +137,7 @@
         "control": 7,
         "malfunction_risk": 2,
         "price": 50,
-        "texture": "/textures/small_technomagical_device.png",
+        "texture": "./textures/small_technomagical_device.png",
         "texturePixelsPerCell": 110,
         "textureAnchor": {
             "x": 2,
@@ -156,7 +156,7 @@
         "control": 18,
         "malfunction_risk": 6,
         "price": 180,
-        "texture": "/textures/medium_technomagical_device.png",
+        "texture": "./textures/medium_technomagical_device.png",
         "texturePixelsPerCell": 112,
         "textureAnchor": {
             "x": 2,
@@ -178,7 +178,7 @@
         "control": 35,
         "malfunction_risk": 11,
         "price": 340,
-        "texture": "/textures/large_technomagical_device.png",
+        "texture": "./textures/large_technomagical_device.png",
         "texturePixelsPerCell": 234,
         "textureAnchor": {
             "x": 136,
@@ -200,7 +200,7 @@
         "control": 2,
         "malfunction_risk": -1,
         "price": 40,
-        "texture": "/textures/reserve_battery.png",
+        "texture": "./textures/reserve_battery.png",
         "texturePixelsPerCell": 118,
         "textureAnchor": {
             "x": 3,
@@ -218,7 +218,7 @@
         "control": 2,
         "malfunction_risk": 2,
         "price": 50,
-        "texture": "/textures/experimental_emitter.png",
+        "texture": "./textures/experimental_emitter.png",
         "texturePixelsPerCell": 224,
         "textureAnchor": {
             "x": 3,
@@ -237,7 +237,7 @@
         "control": 5,
         "malfunction_risk": 0,
         "price": 20,
-        "texture": "/textures/anchor_escapement.png",
+        "texture": "./textures/anchor_escapement.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 2,
@@ -255,7 +255,7 @@
         "control": 0,
         "malfunction_risk": -1,
         "price": 15,
-        "texture": "/textures/gear_train.png",
+        "texture": "./textures/gear_train.png",
         "texturePixelsPerCell": 111,
         "textureAnchor": {
             "x": 44,
@@ -273,7 +273,7 @@
         "control": 6,
         "malfunction_risk": 1,
         "price": 20,
-        "texture": "/textures/balance_wheel.png",
+        "texture": "./textures/balance_wheel.png",
         "texturePixelsPerCell": 114,
         "textureAnchor": {
             "x": 38,
@@ -291,7 +291,7 @@
         "control": 4,
         "malfunction_risk": -5,
         "price": 40,
-        "texture": "/textures/vibration_damper.png",
+        "texture": "./textures/vibration_damper.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 45,
@@ -310,7 +310,7 @@
         "control": 1,
         "malfunction_risk": 2,
         "price": 10,
-        "texture": "/textures/powerful_springs.png",
+        "texture": "./textures/powerful_springs.png",
         "texturePixelsPerCell": 165,
         "textureAnchor": {
             "x": 54,
@@ -327,7 +327,7 @@
         "control": 0,
         "malfunction_risk": 1,
         "price": 20,
-        "texture": "/textures/crank.png",
+        "texture": "./textures/crank.png",
         "texturePixelsPerCell": 112,
         "textureAnchor": {
             "x": 42,
@@ -345,7 +345,7 @@
         "control": -1,
         "malfunction_risk": -1,
         "price": 5,
-        "texture": "/textures/pendulum.png",
+        "texture": "./textures/pendulum.png",
         "texturePixelsPerCell": 112,
         "textureAnchor": {
             "x": 2,
@@ -362,7 +362,7 @@
         "control": 7,
         "malfunction_risk": 3,
         "price": 45,
-        "texture": "/textures/rotation_synchronizer.png",
+        "texture": "./textures/rotation_synchronizer.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 2,
@@ -381,7 +381,7 @@
         "control": 7,
         "malfunction_risk": 1,
         "price": 35,
-        "texture": "/textures/tourbillon.png",
+        "texture": "./textures/tourbillon.png",
         "texturePixelsPerCell": 112,
         "textureAnchor": {
             "x": 44,
@@ -400,7 +400,7 @@
         "control": 1,
         "malfunction_risk": -4,
         "price": 20,
-        "texture": "/textures/emergency_valve.png",
+        "texture": "./textures/emergency_valve.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 31,
@@ -418,7 +418,7 @@
         "control": 4,
         "malfunction_risk": -2,
         "price": 30,
-        "texture": "/textures/condensation_tank.png",
+        "texture": "./textures/condensation_tank.png",
         "texturePixelsPerCell": 109,
         "textureAnchor": {
             "x": 38,
@@ -436,7 +436,7 @@
         "control": 3,
         "malfunction_risk": 2,
         "price": 35,
-        "texture": "/textures/pressure_supercharger.png",
+        "texture": "./textures/pressure_supercharger.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 2,
@@ -455,7 +455,7 @@
         "control": 7,
         "malfunction_risk": 0,
         "price": 35,
-        "texture": "/textures/steam_distributor.png",
+        "texture": "./textures/steam_distributor.png",
         "texturePixelsPerCell": 112,
         "textureAnchor": {
             "x": 42,
@@ -474,7 +474,7 @@
         "control": -1,
         "malfunction_risk": -1,
         "price": 5,
-        "texture": "/textures/whistle.png",
+        "texture": "./textures/whistle.png",
         "texturePixelsPerCell": 112,
         "textureAnchor": {
             "x": 42,
@@ -491,7 +491,7 @@
         "control": 2,
         "malfunction_risk": 2,
         "price": 30,
-        "texture": "/textures/turbo_blower.png",
+        "texture": "./textures/turbo_blower.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 41,
@@ -509,7 +509,7 @@
         "control": 0,
         "malfunction_risk": -4,
         "price": 60,
-        "texture": "/textures/set_of_fuses.png",
+        "texture": "./textures/set_of_fuses.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 44,
@@ -528,7 +528,7 @@
         "control": -1,
         "malfunction_risk": -1,
         "price": 10,
-        "texture": "/textures/energy_dissipator.png",
+        "texture": "./textures/energy_dissipator.png",
         "texturePixelsPerCell": 112,
         "textureAnchor": {
             "x": 2,
@@ -545,7 +545,7 @@
         "control": 6,
         "malfunction_risk": 2,
         "price": 60,
-        "texture": "/textures/ruby_resonator.png",
+        "texture": "./textures/ruby_resonator.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 46,
@@ -563,7 +563,7 @@
         "control": 3,
         "malfunction_risk": 1,
         "price": 50,
-        "texture": "/textures/sapphire_lens.png",
+        "texture": "./textures/sapphire_lens.png",
         "texturePixelsPerCell": 112,
         "textureAnchor": {
             "x": 42,
@@ -582,7 +582,7 @@
         "control": 10,
         "malfunction_risk": 2,
         "price": 100,
-        "texture": "/textures/aetheric_filter.png",
+        "texture": "./textures/aetheric_filter.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 42,
@@ -601,11 +601,11 @@
         "control": 0,
         "malfunction_risk": 0,
         "price": 0,
-        "texture": "/textures/shafts.png",
-        "texturePixelsPerCell": 60,
+        "texture": "./textures/shafts.png",
+        "texturePixelsPerCell": 115,
         "textureAnchor": {
-            "x": 0,
-            "y": 0
+            "x": 1,
+            "y": 1
         },
         "shape": [
             [1]
@@ -618,11 +618,11 @@
         "control": 0,
         "malfunction_risk": 0,
         "price": 0,
-        "texture": "/textures/cables.png",
-        "texturePixelsPerCell": 60,
+        "texture": "./textures/cables.png",
+        "texturePixelsPerCell": 115,
         "textureAnchor": {
-            "x": 0,
-            "y": 0
+            "x": 1,
+            "y": 1
         },
         "shape": [
             [1]
@@ -635,11 +635,11 @@
         "control": 0,
         "malfunction_risk": 0,
         "price": 0,
-        "texture": "/textures/pipes.png",
-        "texturePixelsPerCell": 60,
+        "texture": "./textures/pipes.png",
+        "texturePixelsPerCell": 115,
         "textureAnchor": {
-            "x": 0,
-            "y": 0
+            "x": 1,
+            "y": 1
         },
         "shape": [
             [1]
@@ -652,7 +652,7 @@
         "control": 2,
         "malfunction_risk": 1,
         "price": 20,
-        "texture": "/textures/bellows.png",
+        "texture": "./textures/bellows.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 15,
@@ -670,7 +670,7 @@
         "control": 5,
         "malfunction_risk": 2,
         "price": 30,
-        "texture": "/textures/butterfly_valve.png",
+        "texture": "./textures/butterfly_valve.png",
         "texturePixelsPerCell": 111,
         "textureAnchor": {
             "x": 36,
@@ -689,7 +689,7 @@
         "control": 1,
         "malfunction_risk": 1,
         "price": 20,
-        "texture": "/textures/piston.png",
+        "texture": "./textures/piston.png",
         "texturePixelsPerCell": 112,
         "textureAnchor": {
             "x": 38,
@@ -706,7 +706,7 @@
         "control": 2,
         "malfunction_risk": 0,
         "price": 50,
-        "texture": "/textures/technomagical_engine.png",
+        "texture": "./textures/technomagical_engine.png",
         "texturePixelsPerCell": 112,
         "textureAnchor": {
             "x": 40,
@@ -724,7 +724,7 @@
         "control": 2,
         "malfunction_risk": 0,
         "price": 60,
-        "texture": "/textures/technomagical_compressor.png",
+        "texture": "./textures/technomagical_compressor.png",
         "texturePixelsPerCell": 113,
         "textureAnchor": {
             "x": 36,

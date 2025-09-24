@@ -16,7 +16,7 @@ export default function SteamSunApp() {
 
   // Загружаем blocks.json один раз
   useEffect(() => {
-    fetch("/blocks.json")
+    fetch("./blocks.json")
       .then((res) => res.json())
       .then((data) => setBlocks(data))
       .catch((err) => console.error("Ошибка загрузки blocks.json:", err));

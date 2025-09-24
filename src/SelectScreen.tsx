@@ -22,9 +22,9 @@ export default function SelectScreen({
   
   // Обновляем массив опций
   const gridSizeOptions: GridOption[] = [
-    { label: "7x7", size: { x: 7, y: 7 }, texture: "/textures/grid_7x7.png" },
-    { label: "15x10", size: { x: 15, y: 10 }, texture: "/textures/grid_15x10.png" },
-    { label: "20x10", size: { x: 20, y: 10 }, texture: "/textures/grid_20x10.png" },
+    { label: "7x7", size: { x: 7, y: 7 }, texture: "./textures/grid_7x7.png" },
+    { label: "15x10", size: { x: 15, y: 10 }, texture: "./textures/grid_15x10.png" },
+    { label: "20x10", size: { x: 20, y: 10 }, texture: "./textures/grid_20x10.png" },
   ];
   
   // Храним выбранной всю опцию, а не только размер

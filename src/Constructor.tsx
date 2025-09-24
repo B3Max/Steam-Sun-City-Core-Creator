@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useLayoutEffect } from "react";
 
 // --- Типы данных ---
 type BlockShape = boolean[][];
@@ -47,6 +47,7 @@ type PaletteItem = {
 
 type DraggableBlockProps = {
   item: PaletteItem;
+  hubCellSizePx: number; // размер клетки предпросмотра в хабе
   onBlockSelect: (
     jsonId: string,
     shape: BlockShape,
@@ -124,10 +125,10 @@ function buildImageTransform(
 }
 
 // --- Компоненты ---
-const DraggableBlock: React.FC<DraggableBlockProps> = ({ item, onBlockSelect }) => {
+const DraggableBlock: React.FC<DraggableBlockProps> = ({ item, onBlockSelect, hubCellSizePx }) => {
   const blockWidth = item.shape[0]?.length || 1;
   const blockHeight = item.shape.length || 1;
-  const CELL = 40;
+  const CELL = hubCellSizePx / 1.5;
   const ppc = item.texturePixelsPerCell ?? 60; // по умолчанию 60px на клетку
   const anchor = item.textureAnchor ?? { x: 0, y: 0 };
   const scalePx = CELL / ppc;
@@ -160,8 +161,9 @@ const DraggableBlock: React.FC<DraggableBlockProps> = ({ item, onBlockSelect }) 
   );
 };
 
-const Hub = ({ items, onBlockSelect }: {
+const Hub = ({ items, onBlockSelect, hubCellSizePx }: {
   items: PaletteItem[];
+  hubCellSizePx: number;
   onBlockSelect: (
     jsonId: string,
     shape: BlockShape,
@@ -178,7 +180,7 @@ const Hub = ({ items, onBlockSelect }: {
       <p>Нажмите 'F' для зеркала</p>
 
       {items.map((it, idx) => (
-        it.shape.length > 0 && <DraggableBlock key={idx} item={it} onBlockSelect={onBlockSelect} />
+        it.shape.length > 0 && <DraggableBlock key={idx} item={it} hubCellSizePx={hubCellSizePx} onBlockSelect={onBlockSelect} />
       ))}
     </div>
   );
@@ -212,25 +214,33 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
   const [conflictingCells, setConflictingCells] = useState<BlockPosition[]>([]);
   const [cellSize, setCellSize] = useState(0);
   const gridRef = useRef<HTMLDivElement>(null);
+  const gridMeasureRef = useRef<HTMLDivElement>(null); // стабильный контейнер для измерения (карточка с padding)
 
-  useEffect(() => {
-    const calculateCellSize = () => {
-      const screenWidth = window.innerWidth;
+  useLayoutEffect(() => {
+    if (!gridMeasureRef.current) return;
+    const el = gridMeasureRef.current;
 
-      // Разделяем доступную ширину на количество колонок
-      const newSize = screenWidth / gridSize.x / 2;
-      setCellSize(newSize);
+    const computeContentWidth = () => {
+      const style = window.getComputedStyle(el);
+      const paddingLeft = parseFloat(style.paddingLeft || "0");
+      const paddingRight = parseFloat(style.paddingRight || "0");
+      const innerWidth = el.clientWidth - paddingLeft - paddingRight;
+      const availableWidth = Math.max(0, innerWidth);
+      const size = availableWidth > 0 ? Math.floor(availableWidth / gridSize.x) : 0;
+      setCellSize(size);
     };
 
-    // Вызываем функцию при первом рендере и при изменении размера окна
-    calculateCellSize();
-    window.addEventListener('resize', calculateCellSize);
+    // Инициализация
+    computeContentWidth();
 
-    // Убираем слушатель при размонтировании компонента
+    const ro = new ResizeObserver(() => {
+      computeContentWidth();
+    });
+    ro.observe(el);
     return () => {
-      window.removeEventListener('resize', calculateCellSize);
+      ro.disconnect();
     };
-  }, [gridSize]); // Пересчитываем только при изменении размера сетки
+  }, [gridSize]);
 
 
   const palette: PaletteItem[] = useMemo(
@@ -457,31 +467,49 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
       )}
       <div className="mx-auto">
         <h1 className="text-3xl font-bold mb-8 text-center">Steam Sun — Тестовая сборка</h1>
-        <div className="flex gap-8 items-start justify-center">
-          <div className="bg-gray-800 p-4 rounded-lg">
+        <div className="flex gap-8 items-start">
+          <div className="flex-1 min-w-0">
+            <div className="bg-gray-800 p-4 rounded-lg" ref={gridMeasureRef}>
             <h2 className="text-xl font-semibold mb-4 text-center">Сетка ядра {gridSize.x}x{gridSize.y}</h2>
-            <div className="relative">
+              <div className="relative">
               {/* Фоновая текстура */}
-              <img
-                src={gridTexture}
-                alt="Grid background"
-                className="absolute top-0 left-0 w-full h-full pointer-events-none z-0"
-                style={{
-                  // TODO: Надо выровнять текстуру по сетке и сделать также как и с текстурами на блоках
-                }}
-              />
+                <img
+                  src={gridTexture}
+                  alt="Grid background"
+                  className="absolute top-0 left-0 pointer-events-none z-0"
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    transformOrigin: 'top left',
+                    // Рисуем как текстуру блока: масштабируем от cellSize с условным ppc
+                    transform: buildImageTransform(
+                      gridSize.x,
+                      gridSize.y,
+                      cellSize,
+                      0,
+                      false,
+                      { x: 133, y: 114 },
+                      cellSize / 115
+                    ),
+                    maxWidth: 'none',
+                    height: 'auto'
+                  }}
+                />
               <div
                 ref={gridRef}
                 className={`grid gap-0 border-2 border-gray-600 relative`}
                 style={{
-                  gridTemplateColumns: `repeat(${gridSize.x}, minmax(0, 1fr))`,
+                  gridTemplateColumns: `repeat(${gridSize.x}, ${cellSize}px)`,
+                  width: `${gridSize.x * cellSize}px`,
+                  height: `${gridSize.y * cellSize}px`,
                   zIndex: 1
                 }}
                 onMouseDown={handleMouseDownOnGrid}
               >
                 {Array.from({ length: gridSize.y }).map((_, y) => Array.from({ length: gridSize.x }).map((_, x) => {
                   return (
-                    <div key={`${x}-${y}`} className="relative" style={{ width: `${cellSize}px`, height: `${cellSize}px`, border: '1px solid #181a15ff' }}>
+                      <div key={`${x}-${y}`} className="relative" style={{ width: `${cellSize}px`, height: `${cellSize}px`, border: '1px solid #181a15ff', boxSizing: 'border-box' }}>
                       {
                         isDragging && activeBlockShape &&
                         x >= previewPosition.x && x < previewPosition.x + (activeBlockShape[0]?.length || 0) &&
@@ -531,8 +559,9 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
                   />
                 )}
               </div>
+              </div>
+              <button onClick={clearGrid} className="mt-4 w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Очистить сетку</button>
             </div>
-            <button onClick={clearGrid} className="mt-4 w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Очистить сетку</button>
           </div>
           <div className="mt-6 p-4 border border-gray-600 rounded-lg">
             <h3 className="text-lg font-semibold text-center mb-3">Итоговые параметры сборки</h3>
@@ -550,7 +579,7 @@ export default function Consctructor({ initialBlocks, gridSize, gridTexture }: {
               <span className="font-mono text-green-400">{totalStats.price} ⚙️</span>
             </div>
           </div>
-          <Hub items={palette} onBlockSelect={handleSelectBlockFromHub} />
+          <Hub items={palette} hubCellSizePx={cellSize} onBlockSelect={handleSelectBlockFromHub} />
         </div>
       </div>
     </div>
